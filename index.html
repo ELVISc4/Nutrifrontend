@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-width=1.0">
     <title>Nutri - AI Advisor</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- استدعاء مكتبة تحويل الشات إلى PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
-            /* ثيم الإضاءة الساطعة (الأساسي) */
+            /* ثيم الإضاءة الساطعة */
             --bg-gradient: radial-gradient(circle at center, #ffffff 0%, #f4fdf8 40%, #d1fae5 100%);
             --text-color: #0f172a;
             --sub-text: #475569;
@@ -59,9 +61,7 @@
             z-index: 10;
         }
 
-        [dir="ltr"] .top-controls {
-            flex-direction: row-reverse;
-        }
+        [dir="ltr"] .top-controls { flex-direction: row-reverse; }
 
         .control-btn {
             padding: 8px 16px;
@@ -73,96 +73,53 @@
             font-family: 'Cairo', sans-serif;
             font-weight: bold;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .header {
-            text-align: center;
-            padding: 30px 20px 10px;
-        }
+        .control-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
+        .header { text-align: center; padding: 50px 20px 10px; }
         .header h1 { margin: 0; font-size: 28px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .apple-icon { display: inline-block; animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popIn { 0% { transform: scale(0) rotate(-15deg); opacity: 0; } 70% { transform: scale(1.2) rotate(10deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
 
-        .domain-selector {
-            text-align: center;
-            margin: 10px auto 20px;
-            width: 90%;
-            max-width: 600px;
-        }
+        .domain-selector { text-align: center; margin: 10px auto 20px; width: 90%; max-width: 600px; }
+        select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; cursor: pointer; }
 
-        select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--btn-border);
-            background: var(--btn-bg);
-            color: var(--text-color);
-            font-family: 'Cairo', sans-serif;
-            font-size: 15px;
-            outline: none;
-            cursor: pointer;
-        }
+        .suggestions-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 20px; min-height: 50px; transition: opacity 0.5s ease; }
+        .suggestion-chip { background: var(--sugg-bg); border: 1px solid var(--btn-border); color: var(--text-color); padding: 10px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .suggestion-chip:hover { background: var(--sugg-hover); transform: translateY(-2px); }
 
-        .suggestions-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            min-height: 50px;
-            transition: opacity 0.5s ease;
-        }
-
-        .suggestion-chip {
-            background: var(--sugg-bg);
-            border: 1px solid var(--btn-border);
-            color: var(--text-color);
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .suggestion-chip:hover {
-            background: var(--sugg-hover);
-            transform: translateY(-2px);
-        }
-
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-            border-top: 1px solid rgba(150, 150, 150, 0.1);
-        }
-
-        .message {
-            max-width: 85%;
-            margin-bottom: 20px;
-            padding: 15px 20px;
-            border-radius: 18px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-            line-height: 1.6;
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; border-top: 1px solid rgba(150, 150, 150, 0.1); }
+        
+        .message { padding: 15px 20px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); line-height: 1.6; animation: fadeIn 0.4s ease-out forwards; max-width: 85%; }
         @keyframes fadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
-        .user-message { background-color: var(--user-bg); color: var(--user-text); margin-inline-start: auto; border-bottom-right-radius: 4px; }
+        .user-message { background-color: var(--user-bg); color: var(--user-text); margin-inline-start: auto; border-bottom-right-radius: 4px; margin-bottom: 20px; }
         [dir="ltr"] .user-message { border-bottom-right-radius: 18px; border-bottom-left-radius: 4px; }
-        .bot-message { background-color: var(--bot-bg); color: var(--bot-text); margin-inline-end: auto; border-bottom-left-radius: 4px; }
-        [dir="ltr"] .bot-message { border-bottom-left-radius: 18px; border-bottom-right-radius: 4px; }
+        
+        /* تنسيق أفاتار نيوتري */
+        .bot-wrapper { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 20px; }
+        [dir="ltr"] .bot-wrapper { flex-direction: row; }
+        .bot-avatar { font-size: 24px; animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; margin-bottom: 5px; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        
+        .bot-message { background-color: var(--bot-bg); color: var(--bot-text); border-bottom-right-radius: 4px; margin: 0; flex: 1; }
+        [dir="ltr"] .bot-message { border-bottom-left-radius: 4px; border-bottom-right-radius: 18px; }
 
-        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 20px; box-sizing: border-box; display: flex; gap: 10px; }
+        /* تنسيقات الماركدون (الخط العريض والقوائم) */
+        .bot-message strong { color: #166534; }
+        [data-theme="dark"] .bot-message strong { color: #4ade80; }
+
+        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 20px; box-sizing: border-box; display: flex; gap: 10px; align-items: center; }
         input[type="text"] { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 16px; outline: none; }
-        button.send-btn { padding: 0 25px; background: #166534; color: white; border: none; border-radius: 12px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 16px; transition: 0.2s; }
-        button.send-btn:hover { background: #14532d; }
+        button.action-btn { padding: 0 25px; height: 54px; background: #166534; color: white; border: none; border-radius: 12px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 16px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px;}
+        button.action-btn:hover { background: #14532d; }
+        button.pdf-btn { background: #ef4444; padding: 0 15px; }
+        button.pdf-btn:hover { background: #dc2626; }
+        
         .loading { display: none; text-align: center; color: var(--sub-text); margin-bottom: 20px; font-weight: bold; }
     </style>
 </head>
@@ -179,35 +136,24 @@
     </div>
 
     <div class="domain-selector">
-        <select id="domainSelect">
-            <option value="">اختر مجال الاستشارة التخصصي...</option>
-            <option value="التغذية البشرية والأنظمة الغذائية">التغذية البشرية والأنظمة الغذائية</option>
-            <option value="استشارة عامة في الأغذية">استشارة عامة في الأغذية</option>
-            <option value="كيمياء وتحليل الأغذية">كيمياء وتحليل الأغذية</option>
-            <option value="سلامة وصحة الغذاء وتأمين الجودة">سلامة وصحة الغذاء وتأمين الجودة</option>
-            <option value="هندسة وتصنيع خطوط الإنتاج">هندسة وتصنيع خطوط الإنتاج</option>
-            <option value="تطوير المنتجات والابتكار الغذائي">تطوير المنتجات والابتكار الغذائي</option>
-            <option value="ميكروبيولوجيا والأحياء الدقيقة للأغذية">ميكروبيولوجيا والأحياء الدقيقة للأغذية</option>
-        </select>
+        <select id="domainSelect"></select>
     </div>
 
-    <div class="suggestions-container" id="suggestionsBox">
-        <!-- يتم توليد الاقتراحات هنا عبر جافاسكريبت -->
-    </div>
+    <div class="suggestions-container" id="suggestionsBox"></div>
 
-    <div class="chat-container" id="chatContainer">
-        <!-- المحادثات تظهر هنا -->
-    </div>
+    <!-- سيتم حفظ هذا الجزء كـ PDF -->
+    <div class="chat-container" id="chatContainer"></div>
     
     <div class="loading" id="loadingIndicator">Nutri يحلل البيانات ويصيغ الرد... ⏳</div>
 
     <div class="input-area">
+        <button class="action-btn pdf-btn" id="pdfBtn" onclick="downloadPDF()" title="حفظ كمستند PDF">📥 PDF</button>
         <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)">
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()">إرسال</button>
+        <button class="action-btn" id="sendBtn" onclick="sendMessage()">إرسال</button>
     </div>
 
     <script>
-        // === 1. إدارة التوطين (اللغات) ===
+        // === 1. إدارة التوطين (اللغات) الشاملة ===
         let currentLang = 'ar';
         const uiText = {
             ar: {
@@ -228,6 +174,19 @@
             }
         };
 
+        const domainsData = {
+            ar: ["التغذية البشرية والأنظمة الغذائية", "استشارة عامة في الأغذية", "كيمياء وتحليل الأغذية", "سلامة وصحة الغذاء وتأمين الجودة", "هندسة وتصنيع خطوط الإنتاج", "تطوير المنتجات والابتكار الغذائي", "ميكروبيولوجيا والأحياء الدقيقة للأغذية"],
+            en: ["Human Nutrition & Diets", "General Food Consultation", "Food Chemistry & Analysis", "Food Safety & Quality Assurance", "Engineering & Production Lines", "Product Development & Innovation", "Food Microbiology"]
+        };
+
+        function initDomains() {
+            const select = document.getElementById('domainSelect');
+            select.innerHTML = `<option value="">${uiText[currentLang].domainDefault}</option>`;
+            domainsData[currentLang].forEach(d => {
+                select.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+        }
+
         function toggleLang() {
             currentLang = currentLang === 'ar' ? 'en' : 'ar';
             document.documentElement.lang = currentLang;
@@ -235,20 +194,19 @@
             
             document.getElementById('langBtn').textContent = uiText[currentLang].langToggle;
             document.getElementById('subHeader').textContent = uiText[currentLang].subHeader;
-            document.getElementById('domainSelect').options[0].textContent = uiText[currentLang].domainDefault;
             document.getElementById('userInput').placeholder = uiText[currentLang].inputPlaceholder;
             document.getElementById('sendBtn').textContent = uiText[currentLang].sendBtn;
             document.getElementById('loadingIndicator').textContent = uiText[currentLang].loading;
             
             updateThemeButtonText();
-            rotateSuggestions(); // تحديث الاقتراحات للغة الجديدة
+            initDomains(); // تحديث القائمة المنسدلة للغة الجديدة
+            rotateSuggestions(); 
         }
 
         // === 2. إدارة الثيم (الألوان) ===
         function toggleTheme() {
             const body = document.body;
-            const isLight = body.getAttribute('data-theme') === 'light';
-            body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+            body.setAttribute('data-theme', body.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
             updateThemeButtonText();
         }
 
@@ -262,30 +220,21 @@
             ar: [
                 "من أنت ومن قام بتطويرك؟", "كيف أقرأ البطاقة الغذائية بشكل صحيح؟", 
                 "ما هي أفضل الأنظمة الغذائية لزيادة التركيز؟", "كيف نتحكم في تغيرات الألوان أثناء التصنيع؟",
-                "ما هي معايير الـ HACCP في خطوط الإنتاج؟", "كيف نبتكر تركيبات غذائية جديدة؟",
-                "كيف يتم حساب مدة الصلاحية (Shelf Life) للمنتجات؟", "ما هو تأثير التغليف الذكي على جودة الغذاء؟",
-                "كيف نمنع التلوث التبادلي في المصانع؟", "هل الصيام المتقطع مناسب للرياضيين؟",
-                "ما هي تحديات إنتاج اللحوم النباتية؟", "كيف يمكن استبدال المواد الحافظة الكيميائية ببدائل طبيعية؟"
+                "ما هي معايير الـ HACCP في خطوط الإنتاج؟", "كيف نبتكر تركيبات غذائية جديدة؟"
             ],
             en: [
                 "Who are you and who developed you?", "How to read Nutrition Facts correctly?",
                 "Best diets for mental focus?", "How to control color changes during processing?",
-                "What are HACCP standards in production lines?", "How to innovate new food formulations?",
-                "How is product Shelf Life calculated?", "Impact of smart packaging on food quality?",
-                "How to prevent cross-contamination in factories?", "Is intermittent fasting suitable for athletes?",
-                "What are the challenges of plant-based meat production?", "How to replace chemical preservatives with natural ones?"
+                "What are HACCP standards in production lines?", "How to innovate new food formulations?"
             ]
         };
 
         function rotateSuggestions() {
             const pool = suggestionsPool[currentLang];
             const box = document.getElementById('suggestionsBox');
-            
-            // اختيار 3 أسئلة عشوائية بدون تكرار
             let shuffled = pool.sort(() => 0.5 - Math.random());
             let selected = shuffled.slice(0, 3);
             
-            // تأثير بصري للاختفاء والظهور
             box.style.opacity = 0;
             setTimeout(() => {
                 box.innerHTML = '';
@@ -293,62 +242,75 @@
                     let chip = document.createElement('div');
                     chip.className = 'suggestion-chip';
                     chip.textContent = sugg;
-                    chip.onclick = () => {
-                        document.getElementById('userInput').value = sugg;
-                        sendMessage();
-                    };
+                    chip.onclick = () => { document.getElementById('userInput').value = sugg; sendMessage(); };
                     box.appendChild(chip);
                 });
                 box.style.opacity = 1;
-            }, 500); // يتطابق مع وقت الـ transition في الـ CSS
+            }, 500); 
+        }
+        setInterval(rotateSuggestions, 20000);
+
+        // === 4. محرك الترجمة للماركدون (Markdown Parser) ===
+        function parseMarkdown(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // تحويل **نص** إلى خط عريض
+                .replace(/\*(.*?)\*/g, '<em>$1</em>') // تحويل *نص* إلى خط مائل
+                .replace(/\n/g, '<br>'); // تحويل النزول لسطر جديد
         }
 
-        // تدوير الاقتراحات كل 20 ثانية
-        setInterval(rotateSuggestions, 20000);
-        rotateSuggestions(); // التشغيل الأولي
-
-        // === 4. محرك الشات والاتصال بالسيرفر ===
+        // === 5. محرك الشات والاتصال ===
         function appendMessage(content, sender) {
             const chatContainer = document.getElementById('chatContainer');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${sender === 'user' ? 'user-message' : 'bot-message'}`;
-            msgDiv.innerHTML = content.replace(/\n/g, '<br>');
-            chatContainer.appendChild(msgDiv);
+            
+            if (sender === 'user') {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message user-message';
+                msgDiv.innerHTML = parseMarkdown(content);
+                chatContainer.appendChild(msgDiv);
+            } else {
+                // تصميم الأفاتار الخاص بنيوتري
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bot-wrapper';
+                wrapper.innerHTML = `
+                    <div class="bot-avatar">🍏</div>
+                    <div class="message bot-message">${parseMarkdown(content)}</div>
+                `;
+                chatContainer.appendChild(wrapper);
+            }
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') sendMessage();
-        }
+        function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(); }
 
         async function sendMessage() {
             const inputField = document.getElementById('userInput');
             const message = inputField.value.trim();
             if (!message) return;
 
-            // قراءة المجال المختار لتوجيه الذكاء الاصطناعي
-            const domainSelect = document.getElementById('domainSelect');
-            const selectedDomain = domainSelect.value;
-
+            const selectedDomain = document.getElementById('domainSelect').value;
             appendMessage(message, 'user');
             inputField.value = '';
-            
-            // إخفاء الاقتراحات بمجرد بدء المحادثة للتركيز (UX Design)
             document.getElementById('suggestionsBox').style.display = 'none';
             
             const loading = document.getElementById('loadingIndicator');
             loading.style.display = 'block';
 
+            // تكتيك الحقن الخفي للحفاظ على نقاء اللغة
+            let languageEnforcement = currentLang === 'en' 
+                ? "\n[System Strict Rule: Reply ONLY in English. Do not use Arabic unless it is a specific technical food term.]" 
+                : "\n[System Strict Rule: Reply ONLY in Arabic. Do not use English unless it is a specific technical food term.]";
+
             try {
-                // الاتصال بـ Backend السحابي على Vercel
                 const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_message: message, domain: selectedDomain })
+                    body: JSON.stringify({ 
+                        user_message: message + languageEnforcement, 
+                        domain: selectedDomain 
+                    })
                 });
 
                 if (!response.ok) throw new Error('Network Error');
-                
                 const data = await response.json();
                 appendMessage(data.reply, 'bot');
             } catch (error) {
@@ -357,6 +319,36 @@
                 loading.style.display = 'none';
             }
         }
+
+        // === 6. محرك تصدير الـ PDF ===
+        function downloadPDF() {
+            const element = document.getElementById('chatContainer');
+            
+            // التأكد من وجود محادثة قبل الحفظ
+            if (element.children.length === 0) {
+                alert(currentLang === 'ar' ? "لا توجد محادثة لحفظها!" : "No chat to save!");
+                return;
+            }
+
+            const opt = {
+                margin:       10,
+                filename:     'Nutri_Consultation.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // إضافة كلاس مؤقت لضبط ألوان الـ PDF في وضع الـ Dark Theme
+            element.style.backgroundColor = document.body.getAttribute('data-theme') === 'dark' ? '#061c11' : '#ffffff';
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.backgroundColor = ''; // إعادة اللون لطبيعته
+            });
+        }
+
+        // التشغيل الأولي
+        initDomains();
+        rotateSuggestions();
     </script>
 </body>
 </html>

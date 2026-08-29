@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Light Theme Defaults */
+            /* ثيم الإضاءة الساطعة (الأساسي) */
             --bg-gradient: radial-gradient(circle at center, #ffffff 0%, #f4fdf8 40%, #d1fae5 100%);
             --text-color: #0f172a;
             --sub-text: #475569;
@@ -17,10 +17,12 @@
             --user-text: #111b21;
             --bot-bg: #ffffff;
             --bot-text: #111b21;
+            --sugg-bg: rgba(255, 255, 255, 0.7);
+            --sugg-hover: rgba(220, 248, 198, 0.9);
         }
 
         [data-theme="dark"] {
-            /* Dark Theme Overrides */
+            /* ثيم الإضاءة الداكنة */
             --bg-gradient: radial-gradient(circle at center, #061c11 0%, #090a0f 60%, #050505 100%);
             --text-color: #f8fafc;
             --sub-text: #94a3b8;
@@ -30,6 +32,8 @@
             --user-text: #e9edef;
             --bot-bg: #202c33;
             --bot-text: #e9edef;
+            --sugg-bg: rgba(32, 44, 51, 0.7);
+            --sugg-hover: rgba(0, 92, 75, 0.8);
         }
 
         body {
@@ -41,24 +45,25 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            transition: background 0.3s ease, color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
-        .header {
-            text-align: center;
-            padding: 20px;
-            border-bottom: 1px solid var(--btn-border);
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .theme-toggle {
+        .top-controls {
             position: absolute;
             top: 20px;
             left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        [dir="ltr"] .top-controls {
+            flex-direction: row-reverse;
+        }
+
+        .control-btn {
             padding: 8px 16px;
             background: var(--btn-bg);
             color: var(--text-color);
@@ -67,6 +72,63 @@
             cursor: pointer;
             font-family: 'Cairo', sans-serif;
             font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px 10px;
+        }
+
+        .header h1 { margin: 0; font-size: 28px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .apple-icon { display: inline-block; animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn { 0% { transform: scale(0) rotate(-15deg); opacity: 0; } 70% { transform: scale(1.2) rotate(10deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+
+        .domain-selector {
+            text-align: center;
+            margin: 10px auto 20px;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--btn-border);
+            background: var(--btn-bg);
+            color: var(--text-color);
+            font-family: 'Cairo', sans-serif;
+            font-size: 15px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .suggestions-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            min-height: 50px;
+            transition: opacity 0.5s ease;
+        }
+
+        .suggestion-chip {
+            background: var(--sugg-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .suggestion-chip:hover {
+            background: var(--sugg-hover);
+            transform: translateY(-2px);
         }
 
         .chat-container {
@@ -77,151 +139,220 @@
             margin: 0 auto;
             width: 100%;
             box-sizing: border-box;
+            border-top: 1px solid rgba(150, 150, 150, 0.1);
         }
 
         .message {
-            max-width: 80%;
+            max-width: 85%;
             margin-bottom: 20px;
             padding: 15px 20px;
             border-radius: 18px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
             line-height: 1.6;
-            animation: fadeIn 0.5s ease-out forwards;
+            animation: fadeIn 0.4s ease-out forwards;
         }
 
-        @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(15px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
-        .user-message {
-            background-color: var(--user-bg);
-            color: var(--user-text);
-            margin-right: auto;
-            border-bottom-right-radius: 4px;
-        }
+        .user-message { background-color: var(--user-bg); color: var(--user-text); margin-inline-start: auto; border-bottom-right-radius: 4px; }
+        [dir="ltr"] .user-message { border-bottom-right-radius: 18px; border-bottom-left-radius: 4px; }
+        .bot-message { background-color: var(--bot-bg); color: var(--bot-text); margin-inline-end: auto; border-bottom-left-radius: 4px; }
+        [dir="ltr"] .bot-message { border-bottom-left-radius: 18px; border-bottom-right-radius: 4px; }
 
-        .bot-message {
-            background-color: var(--bot-bg);
-            color: var(--bot-text);
-            margin-left: auto;
-            border-bottom-left-radius: 4px;
-        }
-
-        .input-area {
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            gap: 10px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--btn-border);
-            background: var(--btn-bg);
-            color: var(--text-color);
-            font-family: 'Cairo', sans-serif;
-            font-size: 16px;
-            outline: none;
-        }
-
-        button.send-btn {
-            padding: 0 25px;
-            background: #166534;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-family: 'Cairo', sans-serif;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .loading { display: none; text-align: center; color: var(--sub-text); margin-bottom: 20px; }
+        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 20px; box-sizing: border-box; display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 16px; outline: none; }
+        button.send-btn { padding: 0 25px; background: #166534; color: white; border: none; border-radius: 12px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        button.send-btn:hover { background: #14532d; }
+        .loading { display: none; text-align: center; color: var(--sub-text); margin-bottom: 20px; font-weight: bold; }
     </style>
 </head>
 <body data-theme="light">
 
-    <button class="theme-toggle" onclick="toggleTheme()">🌙 مظلم</button>
+    <div class="top-controls">
+        <button class="control-btn" id="themeBtn" onclick="toggleTheme()">🌙 مظلم</button>
+        <button class="control-btn" id="langBtn" onclick="toggleLang()">🌐 EN</button>
+    </div>
 
     <div class="header">
-        <h1>🍏 Nutri - AI Advisor</h1>
-        <p style="color: var(--sub-text); font-size: 14px; margin-top: 5px;">مستشارك الذكي في التغذية وتكنولوجيا الأغذية</p>
+        <h1><span class="apple-icon">🍏</span> Nutri - AI Advisor</h1>
+        <p id="subHeader" style="color: var(--sub-text); font-size: 14px; margin-top: 5px;">مستشارك الذكي في التغذية وتكنولوجيا الأغذية</p>
+    </div>
+
+    <div class="domain-selector">
+        <select id="domainSelect">
+            <option value="">اختر مجال الاستشارة التخصصي...</option>
+            <option value="التغذية البشرية والأنظمة الغذائية">التغذية البشرية والأنظمة الغذائية</option>
+            <option value="استشارة عامة في الأغذية">استشارة عامة في الأغذية</option>
+            <option value="كيمياء وتحليل الأغذية">كيمياء وتحليل الأغذية</option>
+            <option value="سلامة وصحة الغذاء وتأمين الجودة">سلامة وصحة الغذاء وتأمين الجودة</option>
+            <option value="هندسة وتصنيع خطوط الإنتاج">هندسة وتصنيع خطوط الإنتاج</option>
+            <option value="تطوير المنتجات والابتكار الغذائي">تطوير المنتجات والابتكار الغذائي</option>
+            <option value="ميكروبيولوجيا والأحياء الدقيقة للأغذية">ميكروبيولوجيا والأحياء الدقيقة للأغذية</option>
+        </select>
+    </div>
+
+    <div class="suggestions-container" id="suggestionsBox">
+        <!-- يتم توليد الاقتراحات هنا عبر جافاسكريبت -->
     </div>
 
     <div class="chat-container" id="chatContainer">
-        <!-- Messages will appear here -->
+        <!-- المحادثات تظهر هنا -->
     </div>
     
     <div class="loading" id="loadingIndicator">Nutri يحلل البيانات ويصيغ الرد... ⏳</div>
 
     <div class="input-area">
         <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)">
-        <button class="send-btn" onclick="sendMessage()">إرسال</button>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">إرسال</button>
     </div>
 
     <script>
-        // تغيير الثيم (Light / Dark)
-        function toggleTheme() {
-            const body = document.body;
-            const btn = document.querySelector('.theme-toggle');
-            if (body.getAttribute('data-theme') === 'light') {
-                body.setAttribute('data-theme', 'dark');
-                btn.textContent = '☀️ ساطع';
-            } else {
-                body.setAttribute('data-theme', 'light');
-                btn.textContent = '🌙 مظلم';
+        // === 1. إدارة التوطين (اللغات) ===
+        let currentLang = 'ar';
+        const uiText = {
+            ar: {
+                themeLight: "☀️ ساطع", themeDark: "🌙 مظلم", langToggle: "🌐 EN",
+                subHeader: "مستشارك الذكي في التغذية وتكنولوجيا الأغذية",
+                domainDefault: "اختر مجال الاستشارة التخصصي...",
+                inputPlaceholder: "اسأل Nutri عن أي استشارة غذائية...",
+                sendBtn: "إرسال", loading: "Nutri يحلل البيانات ويصيغ الرد... ⏳",
+                errorMsg: "عذراً، حدث خطأ في الاتصال بالخادم."
+            },
+            en: {
+                themeLight: "☀️ Light", themeDark: "🌙 Dark", langToggle: "🌐 AR",
+                subHeader: "Your Smart Advisor in Nutrition & Food Tech",
+                domainDefault: "Select Consultation Domain...",
+                inputPlaceholder: "Ask Nutri for dietary or tech advice...",
+                sendBtn: "Send", loading: "Nutri is analyzing and formulating a reply... ⏳",
+                errorMsg: "Sorry, a server connection error occurred."
             }
+        };
+
+        function toggleLang() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            
+            document.getElementById('langBtn').textContent = uiText[currentLang].langToggle;
+            document.getElementById('subHeader').textContent = uiText[currentLang].subHeader;
+            document.getElementById('domainSelect').options[0].textContent = uiText[currentLang].domainDefault;
+            document.getElementById('userInput').placeholder = uiText[currentLang].inputPlaceholder;
+            document.getElementById('sendBtn').textContent = uiText[currentLang].sendBtn;
+            document.getElementById('loadingIndicator').textContent = uiText[currentLang].loading;
+            
+            updateThemeButtonText();
+            rotateSuggestions(); // تحديث الاقتراحات للغة الجديدة
         }
 
-        // إضافة رسالة للشاشة
+        // === 2. إدارة الثيم (الألوان) ===
+        function toggleTheme() {
+            const body = document.body;
+            const isLight = body.getAttribute('data-theme') === 'light';
+            body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+            updateThemeButtonText();
+        }
+
+        function updateThemeButtonText() {
+            const isLight = document.body.getAttribute('data-theme') === 'light';
+            document.getElementById('themeBtn').textContent = isLight ? uiText[currentLang].themeDark : uiText[currentLang].themeLight;
+        }
+
+        // === 3. نظام التدوير الذكي للاقتراحات ===
+        const suggestionsPool = {
+            ar: [
+                "من أنت ومن قام بتطويرك؟", "كيف أقرأ البطاقة الغذائية بشكل صحيح؟", 
+                "ما هي أفضل الأنظمة الغذائية لزيادة التركيز؟", "كيف نتحكم في تغيرات الألوان أثناء التصنيع؟",
+                "ما هي معايير الـ HACCP في خطوط الإنتاج؟", "كيف نبتكر تركيبات غذائية جديدة؟",
+                "كيف يتم حساب مدة الصلاحية (Shelf Life) للمنتجات؟", "ما هو تأثير التغليف الذكي على جودة الغذاء؟",
+                "كيف نمنع التلوث التبادلي في المصانع؟", "هل الصيام المتقطع مناسب للرياضيين؟",
+                "ما هي تحديات إنتاج اللحوم النباتية؟", "كيف يمكن استبدال المواد الحافظة الكيميائية ببدائل طبيعية؟"
+            ],
+            en: [
+                "Who are you and who developed you?", "How to read Nutrition Facts correctly?",
+                "Best diets for mental focus?", "How to control color changes during processing?",
+                "What are HACCP standards in production lines?", "How to innovate new food formulations?",
+                "How is product Shelf Life calculated?", "Impact of smart packaging on food quality?",
+                "How to prevent cross-contamination in factories?", "Is intermittent fasting suitable for athletes?",
+                "What are the challenges of plant-based meat production?", "How to replace chemical preservatives with natural ones?"
+            ]
+        };
+
+        function rotateSuggestions() {
+            const pool = suggestionsPool[currentLang];
+            const box = document.getElementById('suggestionsBox');
+            
+            // اختيار 3 أسئلة عشوائية بدون تكرار
+            let shuffled = pool.sort(() => 0.5 - Math.random());
+            let selected = shuffled.slice(0, 3);
+            
+            // تأثير بصري للاختفاء والظهور
+            box.style.opacity = 0;
+            setTimeout(() => {
+                box.innerHTML = '';
+                selected.forEach(sugg => {
+                    let chip = document.createElement('div');
+                    chip.className = 'suggestion-chip';
+                    chip.textContent = sugg;
+                    chip.onclick = () => {
+                        document.getElementById('userInput').value = sugg;
+                        sendMessage();
+                    };
+                    box.appendChild(chip);
+                });
+                box.style.opacity = 1;
+            }, 500); // يتطابق مع وقت الـ transition في الـ CSS
+        }
+
+        // تدوير الاقتراحات كل 20 ثانية
+        setInterval(rotateSuggestions, 20000);
+        rotateSuggestions(); // التشغيل الأولي
+
+        // === 4. محرك الشات والاتصال بالسيرفر ===
         function appendMessage(content, sender) {
             const chatContainer = document.getElementById('chatContainer');
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender === 'user' ? 'user-message' : 'bot-message'}`;
-            
-            // تحويل الأسطر الجديدة إلى <br> لسهولة القراءة
             msgDiv.innerHTML = content.replace(/\n/g, '<br>');
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // التعامل مع زر الإدخال (Enter)
         function handleKeyPress(event) {
             if (event.key === 'Enter') sendMessage();
         }
 
-        // إرسال الرسالة إلى FastAPI
         async function sendMessage() {
             const inputField = document.getElementById('userInput');
             const message = inputField.value.trim();
             if (!message) return;
 
+            // قراءة المجال المختار لتوجيه الذكاء الاصطناعي
+            const domainSelect = document.getElementById('domainSelect');
+            const selectedDomain = domainSelect.value;
+
             appendMessage(message, 'user');
             inputField.value = '';
+            
+            // إخفاء الاقتراحات بمجرد بدء المحادثة للتركيز (UX Design)
+            document.getElementById('suggestionsBox').style.display = 'none';
             
             const loading = document.getElementById('loadingIndicator');
             loading.style.display = 'block';
 
             try {
-                // الاتصال بـ Backend السحابي الجديد على Vercel
+                // الاتصال بـ Backend السحابي على Vercel
                 const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_message: message, domain: "" })
+                    body: JSON.stringify({ user_message: message, domain: selectedDomain })
                 });
 
-                if (!response.ok) throw new Error('خطأ في الاتصال بالخادم');
+                if (!response.ok) throw new Error('Network Error');
                 
                 const data = await response.json();
                 appendMessage(data.reply, 'bot');
             } catch (error) {
-                appendMessage("عذراً، حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقاً.", 'bot');
+                appendMessage(uiText[currentLang].errorMsg, 'bot');
             } finally {
                 loading.style.display = 'none';
             }

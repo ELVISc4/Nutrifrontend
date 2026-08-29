@@ -39,17 +39,17 @@
             --sidebar-shadow: 2px 0 10px rgba(0,0,0,0.5);
         }
 
-        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; transition: all 0.3s ease; overflow: hidden; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: 0.3s; }
 
-        /* --- أدوات التحكم العلوية (مثبتة يساراً دائماً) --- */
-        .top-controls { position: absolute; top: 20px; left: 20px; right: auto; display: flex; flex-direction: row-reverse; gap: 10px; z-index: 10; }
-        .control-btn { padding: 8px 16px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+        /* --- أدوات التحكم العلوية --- */
+        .top-controls { position: absolute; top: 20px; left: 20px; right: auto; display: flex; flex-direction: row-reverse; gap: 8px; z-index: 10; }
+        .control-btn { padding: 8px 14px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 14px;}
         .control-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .delete-btn { color: #ef4444 !important; border-color: #ef4444 !important; }
 
-        /* --- الشباك الجانبي (مثبت يساراً دائماً) --- */
+        /* --- الشباك الجانبي (Sidebar) --- */
         .sidebar { position: fixed; top: 0; left: -320px; right: auto; width: 280px; height: 100vh; background: var(--sidebar-bg); box-shadow: var(--sidebar-shadow); transition: left 0.3s ease; z-index: 1000; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .sidebar.open { left: 0; }
-        
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--btn-border); padding-bottom: 10px; }
         .close-sidebar { background: none; border: none; color: var(--text-color); font-size: 20px; cursor: pointer; }
         .new-chat-btn { width: 100%; padding: 10px; background: #166534; color: white; border: none; border-radius: 8px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
@@ -57,6 +57,11 @@
         .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .history-item { padding: 10px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; transition: 0.2s; }
         .history-item:hover { border-color: #166534; }
+        
+        /* تذييل الشباك (للدعم والمطور) */
+        .sidebar-footer { margin-top: auto; border-top: 1px solid var(--btn-border); padding-top: 15px; text-align: center; font-size: 13px; color: var(--sub-text); line-height: 1.6; }
+        .sidebar-footer a { color: #166534; text-decoration: none; font-weight: bold; }
+        [data-theme="dark"] .sidebar-footer a { color: #4ade80; }
 
         /* --- الهيدر الأساسي --- */
         .header { text-align: center; padding: 60px 20px 10px; }
@@ -64,7 +69,7 @@
         .apple-icon { display: inline-block; animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popIn { 0% { transform: scale(0) rotate(-15deg); opacity: 0; } 70% { transform: scale(1.2) rotate(10deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
 
-        .domain-selector { text-align: center; margin: 10px auto 20px; width: 90%; max-width: 600px; }
+        .domain-selector { text-align: center; margin: 5px auto 15px; width: 90%; max-width: 600px; }
         select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; }
 
         .suggestions-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 10px; min-height: 50px; transition: 0.5s ease; }
@@ -73,32 +78,34 @@
 
         /* --- منطقة الشات --- */
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; border-top: 1px solid rgba(150, 150, 150, 0.1); }
-        
-        /* إضافة خصائص لضبط اتجاه النص تلقائياً بناءً على محتواه */
-        .message { padding: 15px 20px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); line-height: 1.6; max-width: 85%; animation: fadeIn 0.4s ease-out forwards; unicode-bidi: plaintext; text-align: start; }
+        .message { padding: 15px 20px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); line-height: 1.7; max-width: 85%; animation: fadeIn 0.4s ease-out forwards; unicode-bidi: plaintext; text-align: start; position: relative;}
         @keyframes fadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
         .user-message { background-color: var(--user-bg); color: var(--user-text); margin-inline-start: auto; border-bottom-right-radius: 4px; margin-bottom: 20px; }
         [dir="ltr"] .user-message { border-bottom-right-radius: 18px; border-bottom-left-radius: 4px; }
         
-        .bot-wrapper { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 20px; }
+        .bot-wrapper { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 20px; position: relative;}
         [dir="ltr"] .bot-wrapper { flex-direction: row; }
         .bot-avatar { font-size: 24px; animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; margin-bottom: 5px; }
         @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
         
         .bot-message { background-color: var(--bot-bg); color: var(--bot-text); border-bottom-right-radius: 4px; margin: 0; flex: 1; }
         [dir="ltr"] .bot-message { border-bottom-left-radius: 4px; border-bottom-right-radius: 18px; }
+        
+        /* تنسيق الماركدون (العناوين والخط العريض) */
         .bot-message strong { color: #166534; }
         [data-theme="dark"] .bot-message strong { color: #4ade80; }
+        .md-header { color: #166534; font-size: 18px; margin: 15px 0 5px 0; font-weight: 700; border-bottom: 1px solid rgba(22, 101, 52, 0.2); display: inline-block; padding-bottom: 3px;}
+        [data-theme="dark"] .md-header { color: #4ade80; border-color: rgba(74, 222, 128, 0.2); }
 
-        /* --- الحل الجذري للـ PDF --- */
-        .pdf-export-mode { background: #ffffff !important; padding: 30px !important; }
-        .pdf-export-mode * { color: #000000 !important; text-shadow: none !important; font-weight: bold !important; }
-        .pdf-export-mode .message { box-shadow: none !important; border: 2px solid #ddd !important; background-color: #ffffff !important; }
-        .pdf-export-mode .bot-message strong { color: #000000 !important; font-weight: 900 !important; }
+        /* زر النسخ (Copy Button) */
+        .copy-btn { position: absolute; top: -15px; left: 10px; background: var(--btn-bg); border: 1px solid var(--btn-border); color: var(--text-color); border-radius: 5px; padding: 4px 8px; font-size: 12px; cursor: pointer; opacity: 0; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-family: 'Cairo', sans-serif;}
+        .bot-wrapper:hover .copy-btn { opacity: 1; }
+        .copy-btn:hover { background: #166534; color: white; }
+        [dir="ltr"] .copy-btn { left: auto; right: 10px; }
 
-        /* --- منطقة الإدخال والتوقيع --- */
-        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 15px 20px; box-sizing: border-box; display: flex; gap: 10px; align-items: center; z-index: 5; }
+        /* --- منطقة الإدخال --- */
+        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px 0; box-sizing: border-box; display: flex; gap: 10px; align-items: center; z-index: 5; }
         input[type="text"] { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 16px; outline: none; }
         button.action-btn { padding: 0 20px; height: 54px; background: #166534; color: white; border: none; border-radius: 12px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 16px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
         button.action-btn:hover { background: #14532d; }
@@ -106,27 +113,26 @@
         button.pdf-btn:hover { background: #dc2626; }
         
         .loading { display: none; text-align: center; color: var(--sub-text); margin-bottom: 10px; font-weight: bold; }
-        .developer-credit { text-align: center; font-size: 12px; color: var(--sub-text); padding-bottom: 15px; opacity: 0.8; font-weight: 600; }
+        
+        /* إخلاء المسؤولية */
+        .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 8px 20px 15px; opacity: 0.7; font-style: italic; }
 
-        /* --- تحسينات الموبايل (Responsive Design) --- */
         @media (max-width: 768px) {
-            .input-area { 
-                padding: 10px 15px; 
-                /* رفع الصندوق قليلاً لتجنب شريط الموبايل السفلي */
-                padding-bottom: max(15px, env(safe-area-inset-bottom, 15px)); 
-            }
+            .input-area { padding: 10px 15px 0; }
+            .disclaimer { padding-bottom: max(10px, env(safe-area-inset-bottom, 10px)); }
             .action-btn { padding: 0 15px; height: 50px; font-size: 14px; }
             input[type="text"] { padding: 12px; font-size: 14px; }
-            .top-controls { top: 15px; left: 15px; gap: 8px; }
-            .control-btn { padding: 6px 12px; font-size: 12px; }
-            .header { padding-top: 70px; }
+            .top-controls { top: 15px; left: 15px; gap: 6px; }
+            .control-btn { padding: 6px 10px; font-size: 12px; }
+            .header { padding-top: 65px; }
             .header h1 { font-size: 24px; }
-            .sidebar { width: 260px; }
+            .copy-btn { opacity: 1; top: -10px; padding: 2px 6px; font-size: 10px;} /* يظهر دائماً في الموبايل */
         }
     </style>
 </head>
 <body data-theme="light">
 
+    <!-- الشباك الجانبي (Sidebar) -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3 id="historyTitle" style="margin:0; font-size: 18px;">سجل المحادثات</h3>
@@ -134,12 +140,21 @@
         </div>
         <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()">+ محادثة جديدة</button>
         <div class="history-list" id="historyList"></div>
+        
+        <!-- التوقيع والدعم الجديد -->
+        <div class="sidebar-footer">
+            <div id="supportText">للتواصل والدعم:</div>
+            <a href="mailto:hazemelhelw2020@gmail.com">hazemelhelw2020@gmail.com</a>
+            <div style="margin-top: 10px; opacity: 0.8;" id="creditText">Designed & Developed by<br>Hazem El Helw</div>
+        </div>
     </div>
 
+    <!-- أدوات التحكم العلوية -->
     <div class="top-controls">
         <button class="control-btn" onclick="toggleSidebar()">☰ <span id="menuText" style="margin-inline-start: 5px;">السجل</span></button>
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()">🌙 مظلم</button>
         <button class="control-btn" id="langBtn" onclick="toggleLang()">🌐 EN</button>
+        <button class="control-btn delete-btn" id="clearBtn" onclick="clearCurrentChat()">🗑️ مسح</button>
     </div>
 
     <div class="header">
@@ -158,13 +173,14 @@
     <div class="loading" id="loadingIndicator">Nutri يحلل البيانات ويصيغ الرد... ⏳</div>
 
     <div class="input-area">
-        <button class="action-btn pdf-btn" id="pdfBtn" onclick="downloadPDF()" title="حفظ كمستند PDF">📥 PDF</button>
+        <button class="action-btn pdf-btn" id="pdfBtn" onclick="generatePremiumPDF()" title="حفظ كمستند PDF">📥 PDF</button>
         <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)">
         <button class="action-btn" id="sendBtn" onclick="sendMessage()">إرسال</button>
     </div>
-
-    <div class="developer-credit" id="devCredit">
-        تم التطوير بواسطة حازم الحلو
+    
+    <!-- إخلاء المسؤولية -->
+    <div class="disclaimer" id="disclaimerText">
+        Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.
     </div>
 
     <script>
@@ -175,13 +191,15 @@
                 themeLight: "☀️ ساطع", themeDark: "🌙 مظلم", langToggle: "🌐 EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "+ محادثة جديدة",
                 subHeader: "مستشارك الذكي في التغذية وتكنولوجيا الأغذية", domainDefault: "اختر مجال الاستشارة التخصصي...",
                 inputPlaceholder: "اسأل Nutri عن أي استشارة غذائية...", sendBtn: "إرسال", loading: "Nutri يحلل البيانات ويصيغ الرد... ⏳",
-                credit: "تم التطوير بواسطة حازم الحلو", errorMsg: "عذراً، حدث خطأ في الاتصال بالخادم."
+                errorMsg: "عذراً، حدث خطأ في الاتصال بالخادم.", clearBtn: "🗑️ مسح", support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
+                disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة."
             },
             en: {
                 themeLight: "☀️ Light", themeDark: "🌙 Dark", langToggle: "🌐 AR", menuText: "History", historyTitle: "Chat History", newChatBtn: "+ New Chat",
                 subHeader: "Your Smart Advisor in Nutrition & Food Tech", domainDefault: "Select Consultation Domain...",
                 inputPlaceholder: "Ask Nutri for dietary or tech advice...", sendBtn: "Send", loading: "Nutri is analyzing and formulating a reply... ⏳",
-                credit: "Developed by Hazem El Helw", errorMsg: "Sorry, a server connection error occurred."
+                errorMsg: "Sorry, a server connection error occurred.", clearBtn: "🗑️ Clear", support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
+                disclaimer: "Nutri is an AI model and may present inaccurate information."
             }
         };
 
@@ -209,12 +227,14 @@
             document.getElementById('userInput').placeholder = uiText[currentLang].inputPlaceholder;
             document.getElementById('sendBtn').textContent = uiText[currentLang].sendBtn;
             document.getElementById('loadingIndicator').textContent = uiText[currentLang].loading;
-            document.getElementById('devCredit').textContent = uiText[currentLang].credit;
+            document.getElementById('clearBtn').innerHTML = uiText[currentLang].clearBtn;
+            document.getElementById('supportText').textContent = uiText[currentLang].support;
+            document.getElementById('creditText').innerHTML = uiText[currentLang].credit;
+            document.getElementById('disclaimerText').textContent = uiText[currentLang].disclaimer;
             
             updateThemeButtonText(); initDomains(); rotateSuggestions();
         }
 
-        // === 2. الثيم والاقتراحات ===
         function toggleTheme() {
             document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
             updateThemeButtonText();
@@ -246,9 +266,32 @@
         }
         setInterval(rotateSuggestions, 20000);
 
-        function parseMarkdown(text) { return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>'); }
+        // === 2. المترجم الذكي للـ Markdown (علاج الـ ###) ===
+        function parseMarkdown(text) { 
+            let html = text;
+            // ترجمة العناوين المسبوقة بـ ### أو ## أو #
+            html = html.replace(/### (.*?)(?:\n|$)/g, '<div class="md-header">$1</div><br>');
+            html = html.replace(/## (.*?)(?:\n|$)/g, '<div class="md-header" style="font-size:20px;">$1</div><br>');
+            html = html.replace(/# (.*?)(?:\n|$)/g, '<div class="md-header" style="font-size:22px;">$1</div><br>');
+            // ترجمة الخط العريض والمائل
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // النزول لسطر جديد
+            html = html.replace(/\n/g, '<br>'); 
+            return html; 
+        }
 
-        // === 3. الشباك الجانبي والذاكرة ===
+        // === 3. ميزة نسخ النص الاحترافية (Copy to Clipboard) ===
+        function copyText(elementId, btn) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅';
+                setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+            });
+        }
+
+        // === 4. الشباك الجانبي والذاكرة وعملية المسح ===
         let currentChatId = null;
         let currentChatMessages = [];
 
@@ -259,8 +302,22 @@
             currentChatMessages = [];
             document.getElementById('chatContainer').innerHTML = '';
             document.getElementById('suggestionsBox').style.display = 'flex';
-            toggleSidebar();
-            rotateSuggestions();
+            toggleSidebar(); rotateSuggestions();
+        }
+
+        function clearCurrentChat() {
+            if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح هذه المحادثة؟' : 'Are you sure you want to clear this chat?')) {
+                if(currentChatId) {
+                    let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
+                    delete chats[currentChatId];
+                    localStorage.setItem('nutri_chats', JSON.stringify(chats));
+                }
+                currentChatId = Date.now().toString();
+                currentChatMessages = [];
+                document.getElementById('chatContainer').innerHTML = '';
+                document.getElementById('suggestionsBox').style.display = 'flex';
+                renderHistoryList(); rotateSuggestions();
+            }
         }
 
         function saveChatToLocal() {
@@ -278,8 +335,7 @@
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             Object.keys(chats).reverse().forEach(id => {
                 let div = document.createElement('div');
-                div.className = 'history-item';
-                div.textContent = `${chats[id].date} | ${chats[id].title}`;
+                div.className = 'history-item'; div.textContent = `${chats[id].date} | ${chats[id].title}`;
                 div.onclick = () => loadChat(id);
                 list.appendChild(div);
             });
@@ -288,36 +344,35 @@
         function loadChat(id) {
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             if (chats[id]) {
-                currentChatId = id;
-                currentChatMessages = chats[id].messages;
+                currentChatId = id; currentChatMessages = chats[id].messages;
                 const container = document.getElementById('chatContainer');
-                container.innerHTML = '';
-                document.getElementById('suggestionsBox').style.display = 'none';
+                container.innerHTML = ''; document.getElementById('suggestionsBox').style.display = 'none';
                 
-                // استخدام dir="auto" مع الرسائل المحملة
                 currentChatMessages.forEach(msg => {
                     if (msg.role === 'user') {
                         container.innerHTML += `<div class="message user-message" dir="auto">${parseMarkdown(msg.content)}</div>`;
                     } else {
-                        container.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message" dir="auto">${parseMarkdown(msg.content)}</div></div>`;
+                        let msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
+                        container.innerHTML += `
+                            <div class="bot-wrapper">
+                                <div class="bot-avatar">🍏</div>
+                                <div class="message bot-message" id="${msgId}" dir="auto">${parseMarkdown(msg.content)}</div>
+                                <button class="copy-btn" onclick="copyText('${msgId}', this)" title="نسخ">📋</button>
+                            </div>`;
                     }
                 });
-                container.scrollTop = container.scrollHeight;
-                toggleSidebar();
+                container.scrollTop = container.scrollHeight; toggleSidebar();
             }
         }
 
-        // === 4. محرك الشات السحابي ===
         async function sendMessage() {
             const inputField = document.getElementById('userInput');
             const message = inputField.value.trim();
             if (!message) return;
 
             if (!currentChatId) currentChatId = Date.now().toString();
-
             const selectedDomain = document.getElementById('domainSelect').value;
             
-            // حقن dir="auto" لضبط الاتجاه تلقائياً
             currentChatMessages.push({ role: 'user', content: message });
             const chatContainer = document.getElementById('chatContainer');
             chatContainer.innerHTML += `<div class="message user-message" dir="auto">${parseMarkdown(message)}</div>`;
@@ -331,8 +386,7 @@
 
             try {
                 const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_message: message + languageEnforcement, domain: selectedDomain })
                 });
 
@@ -340,36 +394,96 @@
                 const data = await response.json();
                 
                 currentChatMessages.push({ role: 'bot', content: data.reply });
-                chatContainer.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message" dir="auto">${parseMarkdown(data.reply)}</div></div>`;
+                let msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
+                chatContainer.innerHTML += `
+                    <div class="bot-wrapper">
+                        <div class="bot-avatar">🍏</div>
+                        <div class="message bot-message" id="${msgId}" dir="auto">${parseMarkdown(data.reply)}</div>
+                        <button class="copy-btn" onclick="copyText('${msgId}', this)" title="نسخ">📋</button>
+                    </div>`;
                 chatContainer.scrollTop = chatContainer.scrollHeight;
-                
                 saveChatToLocal(); 
             } catch (error) {
                 chatContainer.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message" dir="auto">${uiText[currentLang].errorMsg}</div></div>`;
-            } finally {
-                document.getElementById('loadingIndicator').style.display = 'none';
-            }
+            } finally { document.getElementById('loadingIndicator').style.display = 'none'; }
         }
         function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(); }
 
-        // === 5. الضرب القاضي لمشكلة الـ PDF ===
-        function downloadPDF() {
-            const element = document.getElementById('chatContainer');
-            if (element.children.length === 0) return;
+        // === 5. المحرك الجديد للـ PDF (Clone Engine) ===
+        // هذا المحرك يقوم بإنشاء "شاشة بيضاء" خلفية في الذاكرة، يرسم عليها المحادثة، يضع التفاحة الباهتة والإطار، ويطبعها بنقاء 100%
+        function generatePremiumPDF() {
+            const originalElement = document.getElementById('chatContainer');
+            if (originalElement.children.length === 0) return;
 
-            // الخدعة: فرض ألوان عنيفة للطباعة بوضوح عالي
-            element.classList.add('pdf-export-mode');
+            // إنشاء إطار مخفي للطباعة فقط
+            const printWrapper = document.createElement('div');
+            printWrapper.style.backgroundColor = '#ffffff';
+            printWrapper.style.padding = '40px';
+            printWrapper.style.border = '8px solid #166534'; // الإطار الأخضر المطلوب
+            printWrapper.style.position = 'relative';
+            printWrapper.style.width = '800px'; 
+            printWrapper.style.fontFamily = "'Cairo', sans-serif";
+
+            // إضافة التفاحة الباهتة (Watermark)
+            const watermark = document.createElement('div');
+            watermark.innerHTML = '🍏';
+            watermark.style.position = 'absolute';
+            watermark.style.top = '50%';
+            watermark.style.left = '50%';
+            watermark.style.transform = 'translate(-50%, -50%)';
+            watermark.style.fontSize = '300px';
+            watermark.style.opacity = '0.04'; // باهتة جداً
+            watermark.style.zIndex = '0';
+            printWrapper.appendChild(watermark);
+
+            // استنساخ المحادثة وضبط ألوانها للأسود الصريح
+            const clone = originalElement.cloneNode(true);
+            clone.style.position = 'relative';
+            clone.style.zIndex = '1';
+            clone.style.height = 'auto'; // إلغاء الـ scroll في الطباعة
+            clone.style.overflow = 'visible';
+
+            const allElements = clone.querySelectorAll('*');
+            allElements.forEach(el => {
+                el.style.color = '#000000'; // فرض اللون الأسود
+                el.style.textShadow = 'none';
+                // إخفاء زر النسخ في الـ PDF
+                if(el.classList.contains('copy-btn')) el.style.display = 'none';
+                
+                // تلوين صناديق الرسائل بوضوح
+                if(el.classList.contains('message')) {
+                    el.style.backgroundColor = '#f8fafc';
+                    el.style.border = '1px solid #e2e8f0';
+                    el.style.boxShadow = 'none';
+                }
+            });
+            printWrapper.appendChild(clone);
+
+            // إضافة توقيعك أسفل الـ PDF
+            const pdfFooter = document.createElement('div');
+            pdfFooter.innerHTML = 'Designed by Hazem El Helw';
+            pdfFooter.style.textAlign = 'center';
+            pdfFooter.style.marginTop = '40px';
+            pdfFooter.style.fontSize = '14px';
+            pdfFooter.style.fontWeight = 'bold';
+            pdfFooter.style.color = '#166534';
+            printWrapper.appendChild(pdfFooter);
+
+            // وضع الإطار المخفي في الصفحة مؤقتاً لالتقاطه
+            printWrapper.style.position = 'absolute';
+            printWrapper.style.left = '-9999px';
+            document.body.appendChild(printWrapper);
 
             const opt = {
                 margin:       10,
                 filename:     'Nutri_Consultation.pdf',
                 image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.classList.remove('pdf-export-mode');
+            html2pdf().set(opt).from(printWrapper).save().then(() => {
+                document.body.removeChild(printWrapper); // تنظيف بعد التحميل
             });
         }
 

@@ -20,7 +20,7 @@
             --sugg-bg: rgba(255, 255, 255, 0.7);
             --sugg-hover: rgba(220, 248, 198, 0.9);
             --sidebar-bg: #ffffff;
-            --sidebar-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            --sidebar-shadow: 2px 0 10px rgba(0,0,0,0.1);
         }
 
         [data-theme="dark"] {
@@ -36,33 +36,30 @@
             --sugg-bg: rgba(32, 44, 51, 0.7);
             --sugg-hover: rgba(0, 92, 75, 0.8);
             --sidebar-bg: #0f172a;
-            --sidebar-shadow: -2px 0 10px rgba(0,0,0,0.5);
+            --sidebar-shadow: 2px 0 10px rgba(0,0,0,0.5);
         }
 
         body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; transition: all 0.3s ease; overflow: hidden; }
 
-        /* --- أدوات التحكم العلوية --- */
-        .top-controls { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: flex-start; gap: 10px; z-index: 10; }
-        [dir="ltr"] .top-controls { flex-direction: row-reverse; }
-        .control-btn { padding: 8px 16px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo', sans-serif; transition: 0.2s; }
-        .control-btn:hover { transform: translateY(-2px); }
+        /* --- أدوات التحكم العلوية (مثبتة يساراً دائماً) --- */
+        .top-controls { position: absolute; top: 20px; left: 20px; right: auto; display: flex; flex-direction: row-reverse; gap: 10px; z-index: 10; }
+        .control-btn { padding: 8px 16px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+        .control-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 
-        /* --- الشباك الجانبي (Sidebar) لسجل المحادثات --- */
-        .sidebar { position: fixed; top: 0; right: -300px; width: 280px; height: 100vh; background: var(--sidebar-bg); box-shadow: var(--sidebar-shadow); transition: right 0.3s ease; z-index: 1000; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
-        .sidebar.open { right: 0; }
-        [dir="ltr"] .sidebar { left: -300px; right: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.1); transition: left 0.3s ease; }
-        [dir="ltr"] .sidebar.open { left: 0; right: auto; }
+        /* --- الشباك الجانبي (مثبت يساراً دائماً) --- */
+        .sidebar { position: fixed; top: 0; left: -320px; right: auto; width: 280px; height: 100vh; background: var(--sidebar-bg); box-shadow: var(--sidebar-shadow); transition: left 0.3s ease; z-index: 1000; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .sidebar.open { left: 0; }
         
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--btn-border); padding-bottom: 10px; }
         .close-sidebar { background: none; border: none; color: var(--text-color); font-size: 20px; cursor: pointer; }
         .new-chat-btn { width: 100%; padding: 10px; background: #166534; color: white; border: none; border-radius: 8px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
         .new-chat-btn:hover { background: #14532d; }
         .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .history-item { padding: 10px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: 0.2s; }
+        .history-item { padding: 10px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; transition: 0.2s; }
         .history-item:hover { border-color: #166534; }
 
         /* --- الهيدر الأساسي --- */
-        .header { text-align: center; padding: 50px 20px 10px; }
+        .header { text-align: center; padding: 60px 20px 10px; }
         .header h1 { margin: 0; font-size: 28px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .apple-icon { display: inline-block; animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popIn { 0% { transform: scale(0) rotate(-15deg); opacity: 0; } 70% { transform: scale(1.2) rotate(10deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
@@ -76,7 +73,9 @@
 
         /* --- منطقة الشات --- */
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; border-top: 1px solid rgba(150, 150, 150, 0.1); }
-        .message { padding: 15px 20px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); line-height: 1.6; max-width: 85%; animation: fadeIn 0.4s ease-out forwards; }
+        
+        /* إضافة خصائص لضبط اتجاه النص تلقائياً بناءً على محتواه */
+        .message { padding: 15px 20px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); line-height: 1.6; max-width: 85%; animation: fadeIn 0.4s ease-out forwards; unicode-bidi: plaintext; text-align: start; }
         @keyframes fadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
         .user-message { background-color: var(--user-bg); color: var(--user-text); margin-inline-start: auto; border-bottom-right-radius: 4px; margin-bottom: 20px; }
@@ -92,40 +91,53 @@
         .bot-message strong { color: #166534; }
         [data-theme="dark"] .bot-message strong { color: #4ade80; }
 
-        /* --- خدعة إصلاح جودة الـ PDF --- */
-        .pdf-export-mode { background: #ffffff !important; padding: 20px !important; }
-        .pdf-export-mode .message { box-shadow: none !important; border: 1px solid #ddd !important; background-color: #f8f9fa !important; color: #000000 !important; }
+        /* --- الحل الجذري للـ PDF --- */
+        .pdf-export-mode { background: #ffffff !important; padding: 30px !important; }
+        .pdf-export-mode * { color: #000000 !important; text-shadow: none !important; font-weight: bold !important; }
+        .pdf-export-mode .message { box-shadow: none !important; border: 2px solid #ddd !important; background-color: #ffffff !important; }
         .pdf-export-mode .bot-message strong { color: #000000 !important; font-weight: 900 !important; }
 
         /* --- منطقة الإدخال والتوقيع --- */
         .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 15px 20px; box-sizing: border-box; display: flex; gap: 10px; align-items: center; z-index: 5; }
         input[type="text"] { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 16px; outline: none; }
-        button.action-btn { padding: 0 20px; height: 54px; background: #166534; color: white; border: none; border-radius: 12px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        button.action-btn { padding: 0 20px; height: 54px; background: #166534; color: white; border: none; border-radius: 12px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 16px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
         button.action-btn:hover { background: #14532d; }
         button.pdf-btn { background: #ef4444; padding: 0 15px; }
+        button.pdf-btn:hover { background: #dc2626; }
         
         .loading { display: none; text-align: center; color: var(--sub-text); margin-bottom: 10px; font-weight: bold; }
+        .developer-credit { text-align: center; font-size: 12px; color: var(--sub-text); padding-bottom: 15px; opacity: 0.8; font-weight: 600; }
 
-        /* توقيع المطور */
-        .developer-credit { text-align: center; font-size: 12px; color: var(--sub-text); padding-bottom: 10px; opacity: 0.8; font-weight: 600; }
+        /* --- تحسينات الموبايل (Responsive Design) --- */
+        @media (max-width: 768px) {
+            .input-area { 
+                padding: 10px 15px; 
+                /* رفع الصندوق قليلاً لتجنب شريط الموبايل السفلي */
+                padding-bottom: max(15px, env(safe-area-inset-bottom, 15px)); 
+            }
+            .action-btn { padding: 0 15px; height: 50px; font-size: 14px; }
+            input[type="text"] { padding: 12px; font-size: 14px; }
+            .top-controls { top: 15px; left: 15px; gap: 8px; }
+            .control-btn { padding: 6px 12px; font-size: 12px; }
+            .header { padding-top: 70px; }
+            .header h1 { font-size: 24px; }
+            .sidebar { width: 260px; }
+        }
     </style>
 </head>
 <body data-theme="light">
 
-    <!-- الشباك الجانبي للمحادثات السابقة -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3 id="historyTitle" style="margin:0; font-size: 18px;">سجل المحادثات</h3>
             <button class="close-sidebar" onclick="toggleSidebar()">✖</button>
         </div>
         <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()">+ محادثة جديدة</button>
-        <div class="history-list" id="historyList">
-            <!-- سيتم تحميل المحادثات هنا برمجياً -->
-        </div>
+        <div class="history-list" id="historyList"></div>
     </div>
 
     <div class="top-controls">
-        <button class="control-btn" onclick="toggleSidebar()">☰ <span id="menuText">السجل</span></button>
+        <button class="control-btn" onclick="toggleSidebar()">☰ <span id="menuText" style="margin-inline-start: 5px;">السجل</span></button>
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()">🌙 مظلم</button>
         <button class="control-btn" id="langBtn" onclick="toggleLang()">🌐 EN</button>
     </div>
@@ -151,13 +163,12 @@
         <button class="action-btn" id="sendBtn" onclick="sendMessage()">إرسال</button>
     </div>
 
-    <!-- التوقيع الاحترافي -->
     <div class="developer-credit" id="devCredit">
         تم التطوير بواسطة حازم الحلو
     </div>
 
     <script>
-        // === 1. إدارة التوطين (اللغات) الشاملة ===
+        // === 1. التوطين ===
         let currentLang = 'ar';
         const uiText = {
             ar: {
@@ -237,7 +248,7 @@
 
         function parseMarkdown(text) { return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>'); }
 
-        // === 3. نظام الذاكرة المحلية (Local Storage Database) ===
+        // === 3. الشباك الجانبي والذاكرة ===
         let currentChatId = null;
         let currentChatMessages = [];
 
@@ -255,7 +266,6 @@
         function saveChatToLocal() {
             if (currentChatMessages.length === 0) return;
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
-            // تعيين عنوان للمحادثة من أول رسالة للمستخدم
             let title = currentChatMessages[0].content.substring(0, 25) + "...";
             chats[currentChatId] = { title: title, messages: currentChatMessages, date: new Date().toLocaleDateString() };
             localStorage.setItem('nutri_chats', JSON.stringify(chats));
@@ -284,11 +294,12 @@
                 container.innerHTML = '';
                 document.getElementById('suggestionsBox').style.display = 'none';
                 
+                // استخدام dir="auto" مع الرسائل المحملة
                 currentChatMessages.forEach(msg => {
                     if (msg.role === 'user') {
-                        container.innerHTML += `<div class="message user-message">${parseMarkdown(msg.content)}</div>`;
+                        container.innerHTML += `<div class="message user-message" dir="auto">${parseMarkdown(msg.content)}</div>`;
                     } else {
-                        container.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message">${parseMarkdown(msg.content)}</div></div>`;
+                        container.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message" dir="auto">${parseMarkdown(msg.content)}</div></div>`;
                     }
                 });
                 container.scrollTop = container.scrollHeight;
@@ -296,7 +307,7 @@
             }
         }
 
-        // === 4. محرك الإرسال والـ API ===
+        // === 4. محرك الشات السحابي ===
         async function sendMessage() {
             const inputField = document.getElementById('userInput');
             const message = inputField.value.trim();
@@ -306,10 +317,10 @@
 
             const selectedDomain = document.getElementById('domainSelect').value;
             
-            // إضافة للواجهة والمصفوفة
+            // حقن dir="auto" لضبط الاتجاه تلقائياً
             currentChatMessages.push({ role: 'user', content: message });
             const chatContainer = document.getElementById('chatContainer');
-            chatContainer.innerHTML += `<div class="message user-message">${parseMarkdown(message)}</div>`;
+            chatContainer.innerHTML += `<div class="message user-message" dir="auto">${parseMarkdown(message)}</div>`;
             chatContainer.scrollTop = chatContainer.scrollHeight;
             
             inputField.value = '';
@@ -329,41 +340,39 @@
                 const data = await response.json();
                 
                 currentChatMessages.push({ role: 'bot', content: data.reply });
-                chatContainer.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message">${parseMarkdown(data.reply)}</div></div>`;
+                chatContainer.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message" dir="auto">${parseMarkdown(data.reply)}</div></div>`;
                 chatContainer.scrollTop = chatContainer.scrollHeight;
                 
-                saveChatToLocal(); // حفظ بعد كل رد
+                saveChatToLocal(); 
             } catch (error) {
-                chatContainer.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message">${uiText[currentLang].errorMsg}</div></div>`;
+                chatContainer.innerHTML += `<div class="bot-wrapper"><div class="bot-avatar">🍏</div><div class="message bot-message" dir="auto">${uiText[currentLang].errorMsg}</div></div>`;
             } finally {
                 document.getElementById('loadingIndicator').style.display = 'none';
             }
         }
         function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(); }
 
-        // === 5. إصلاح جودة الـ PDF (High-Contrast Trick) ===
+        // === 5. الضرب القاضي لمشكلة الـ PDF ===
         function downloadPDF() {
             const element = document.getElementById('chatContainer');
             if (element.children.length === 0) return;
 
-            // الخدعة: إضافة كلاس يفرض ألوان واضحة جداً للطباعة
+            // الخدعة: فرض ألوان عنيفة للطباعة بوضوح عالي
             element.classList.add('pdf-export-mode');
 
             const opt = {
                 margin:       10,
                 filename:     'Nutri_Consultation.pdf',
                 image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
-                // إزالة الخدعة وعودة الألوان لطبيعتها بعد التحميل
                 element.classList.remove('pdf-export-mode');
             });
         }
 
-        // التشغيل الأولي
         initDomains(); rotateSuggestions(); renderHistoryList();
     </script>
 </body>

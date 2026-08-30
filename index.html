@@ -42,17 +42,16 @@
 
         body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: 0.3s; }
 
-        /* --- أدوات التحكم العلوية (ثابتة في اليسار) --- */
+        /* --- أدوات التحكم العلوية --- */
         .top-controls { position: absolute; top: 20px; left: 20px; display: flex; flex-direction: row; gap: 8px; z-index: 10; direction: ltr !important; }
         .control-btn { padding: 8px 14px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 14px;}
         .control-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .delete-btn { color: #ef4444 !important; border-color: #ef4444 !important; }
         html[dir="rtl"] .control-btn { direction: rtl; }
 
-        /* --- الشباك الجانبي (ثابت في اليسار دائماً) --- */
+        /* --- الشباك الجانبي --- */
         .sidebar { position: fixed; top: 0; left: -320px; right: auto !important; width: 280px; height: 100vh; background: var(--sidebar-bg); box-shadow: var(--sidebar-shadow); transition: left 0.3s ease; z-index: 1000; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .sidebar.open { left: 0; }
-        
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--btn-border); padding-bottom: 10px; }
         .close-sidebar { background: none; border: none; color: var(--text-color); font-size: 20px; cursor: pointer; }
         .new-chat-btn { width: 100%; padding: 10px; background: #166534; color: white; border: none; border-radius: 8px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
@@ -79,7 +78,7 @@
         .suggestion-chip:hover { background: var(--sugg-hover); transform: translateY(-2px); }
 
         /* --- منطقة الشات --- */
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; border-top: 1px solid rgba(150, 150, 150, 0.1); position: relative; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; border-top: 1px solid rgba(150, 150, 150, 0.1); position: relative; scroll-behavior: smooth; }
         
         .message-wrapper { display: flex; position: relative; margin-bottom: 20px; animation: fadeIn 0.4s ease-out forwards; width: 100%; }
         .user-wrapper { justify-content: flex-start; flex-direction: row-reverse; }
@@ -94,18 +93,18 @@
         .user-message { background-color: var(--user-bg); color: var(--user-text); border-bottom-right-radius: 4px; }
         html[dir="ltr"] .user-message { border-bottom-right-radius: 18px; border-bottom-left-radius: 4px; }
         
-        .bot-avatar { font-size: 24px; animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; margin-bottom: 5px; }
-        @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        
+        .bot-avatar { font-size: 24px; margin-bottom: 5px; }
         .bot-message { background-color: var(--bot-bg); color: var(--bot-text); border-bottom-right-radius: 4px; margin: 0; flex: 1; }
         html[dir="ltr"] .bot-message { border-bottom-left-radius: 4px; border-bottom-right-radius: 18px; }
         
+        /* تنسيقات النصوص المتقدمة */
         .bot-message strong { color: #166534; }
         [data-theme="dark"] .bot-message strong { color: #4ade80; }
         .md-header { color: #166534; font-size: 18px; margin: 15px 0 5px 0; font-weight: 700; border-bottom: 1px solid rgba(22, 101, 52, 0.2); display: inline-block; padding-bottom: 3px;}
         [data-theme="dark"] .md-header { color: #4ade80; border-color: rgba(74, 222, 128, 0.2); }
+        .md-list { margin: 5px 0; padding-inline-start: 20px; }
 
-        /* أزرار النسخ والتعديل */
+        /* الأزرار المصغرة */
         .mini-btn { position: absolute; top: -15px; background: var(--btn-bg); border: 1px solid var(--btn-border); color: var(--text-color); border-radius: 5px; padding: 4px 8px; font-size: 12px; cursor: pointer; opacity: 0; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-family: 'Cairo', sans-serif;}
         .bot-wrapper:hover .mini-btn, .user-wrapper:hover .mini-btn { opacity: 1; }
         .mini-btn:hover { background: #166534; color: white; border-color: #166534;}
@@ -115,7 +114,7 @@
         .edit-btn { right: 10px; color: #eab308; }
         html[dir="ltr"] .edit-btn { right: auto; left: 10px; }
 
-        /* محرر التعديل المدمج (Inline Editor) */
+        /* محرر التعديل المدمج */
         .inline-edit-area { width: 100%; display: flex; flex-direction: column; gap: 8px; }
         .inline-edit-area textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--btn-border); font-family: 'Cairo', sans-serif; background: var(--btn-bg); color: var(--text-color); box-sizing: border-box; resize: vertical; min-height: 80px;}
         .inline-edit-controls { display: flex; gap: 10px; justify-content: flex-end; }
@@ -134,16 +133,25 @@
         .loading { display: none; text-align: center; color: var(--sub-text); margin-bottom: 10px; font-weight: bold; }
         .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 8px 20px 15px; opacity: 0.7; font-style: italic; }
 
-        /* --- وضع الـ PDF المحسن --- */
+        /* --- وضع الـ PDF المحسن (مقاس A4 دقيق) --- */
         .pdf-mode * { color: #000000 !important; text-shadow: none !important; }
         .pdf-mode { height: auto !important; overflow: visible !important; }
-        .pdf-mode .chat-container { overflow: visible !important; border: 4px solid #166534 !important; background-color: #ffffff !important; padding: 40px !important; border-radius: 10px;}
-        .pdf-mode .message-wrapper { page-break-inside: avoid !important; } /* تمنع قطع الرسالة بين صفحتين */
+        .pdf-mode .chat-container { 
+            width: 800px !important; /* فرض عرض الورقة */
+            max-width: 800px !important;
+            overflow: visible !important; 
+            border: 4px solid #166534 !important; 
+            background-color: #ffffff !important; 
+            padding: 40px !important; 
+            border-radius: 10px;
+            margin: 0 auto;
+        }
+        .pdf-mode .message-wrapper { page-break-inside: avoid !important; } 
         .pdf-mode .message { background-color: #f8fafc !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; }
         .pdf-mode .md-header { border-bottom-color: #000 !important; }
         .pdf-mode .mini-btn { display: none !important; }
         
-        #pdf-watermark { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 250px; opacity: 0.04; z-index: 0; pointer-events: none;}
+        #pdf-watermark { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 350px; opacity: 0.03; z-index: 0; pointer-events: none;}
         .pdf-mode #pdf-watermark { display: block; }
         #pdf-footer { display: none; text-align: center; font-size: 14px; font-weight: bold; color: #166534 !important; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px;}
         .pdf-mode #pdf-footer { display: block; }
@@ -161,6 +169,13 @@
         }
     </style>
 </head>
+<!-- قراءة الإعدادات المحفوظة قبل تحميل الصفحة لمنع الوميض -->
+<script>
+    const savedTheme = localStorage.getItem('nutri_theme') || 'light';
+    const savedLang = localStorage.getItem('nutri_lang') || 'ar';
+    document.documentElement.lang = savedLang;
+    document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
+</script>
 <body data-theme="light">
 
     <div class="sidebar" id="sidebar">
@@ -178,7 +193,6 @@
         </div>
     </div>
 
-    <!-- حاوية LTR ثابتة للأزرار في جميع اللغات -->
     <div class="top-controls">
         <button class="control-btn" onclick="toggleSidebar()"><span id="menuText" style="margin-inline-end: 5px;">السجل</span> ☰</button>
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()">🌙 مظلم</button>
@@ -214,7 +228,10 @@
     </div>
 
     <script>
-        let currentLang = 'ar';
+        // تطبيق الثيم المحفوظ
+        document.body.setAttribute('data-theme', savedTheme);
+        
+        let currentLang = savedLang;
         const uiText = {
             ar: {
                 themeLight: "☀️ ساطع", themeDark: "🌙 مظلم", langToggle: "🌐 EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "+ محادثة جديدة",
@@ -243,11 +260,7 @@
             domainsData[currentLang].forEach(d => { select.innerHTML += `<option value="${d}">${d}</option>`; });
         }
 
-        function toggleLang() {
-            currentLang = currentLang === 'ar' ? 'en' : 'ar';
-            document.documentElement.lang = currentLang;
-            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-            
+        function updateUI() {
             document.getElementById('langBtn').textContent = uiText[currentLang].langToggle;
             document.getElementById('menuText').textContent = uiText[currentLang].menuText;
             document.getElementById('historyTitle').textContent = uiText[currentLang].historyTitle;
@@ -261,15 +274,24 @@
             document.getElementById('creditText').innerHTML = uiText[currentLang].credit;
             document.getElementById('disclaimerText').textContent = uiText[currentLang].disclaimer;
             
-            updateThemeButtonText(); initDomains(); rotateSuggestions(); renderCurrentChat();
+            const isLight = document.body.getAttribute('data-theme') === 'light';
+            document.getElementById('themeBtn').textContent = isLight ? uiText[currentLang].themeDark : uiText[currentLang].themeLight;
+            initDomains();
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            localStorage.setItem('nutri_lang', currentLang); // حفظ اللغة
+            updateUI(); rotateSuggestions(); renderCurrentChat();
         }
 
         function toggleTheme() {
-            document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
-            updateThemeButtonText();
-        }
-        function updateThemeButtonText() {
-            document.getElementById('themeBtn').textContent = document.body.getAttribute('data-theme') === 'light' ? uiText[currentLang].themeDark : uiText[currentLang].themeLight;
+            const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('nutri_theme', newTheme); // حفظ الثيم
+            updateUI();
         }
 
         const suggestionsPool = {
@@ -296,6 +318,7 @@
         }
         setInterval(rotateSuggestions, 20000);
 
+        // المترجم الذكي للعلامات (Markdown Parser) المنظف
         function parseMarkdown(text) { 
             let html = text;
             html = html.replace(/### (.*?)(?:\n|$)/g, '<div class="md-header">$1</div><br>');
@@ -303,8 +326,35 @@
             html = html.replace(/# (.*?)(?:\n|$)/g, '<div class="md-header" style="font-size:22px;">$1</div><br>');
             html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // تحويل النقاط النجمية إلى نقاط دائرية حقيقية
+            html = html.replace(/^- (.*)$/gm, '• $1');
+            html = html.replace(/^\* (.*)$/gm, '• $1');
             html = html.replace(/\n/g, '<br>'); 
             return html; 
+        }
+
+        // محرك الآلة الكاتبة (Typewriter Effect)
+        function typeWriterHTML(element, htmlStr) {
+            let i = 0;
+            element.innerHTML = "";
+            function type() {
+                if (i < htmlStr.length) {
+                    if (htmlStr.charAt(i) === "<") {
+                        let tagEnd = htmlStr.indexOf(">", i);
+                        if (tagEnd !== -1) i = tagEnd;
+                    }
+                    element.innerHTML = htmlStr.substring(0, i + 1);
+                    i++;
+                    scrollToBottom();
+                    setTimeout(type, 15); // سرعة الكتابة
+                }
+            }
+            type();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatContainer');
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
         }
 
         function copyText(index, btn) {
@@ -316,12 +366,9 @@
             });
         }
 
-        /* --- محرك التعديل المدمج الجديد (Inline Editing) --- */
         function editMessageInline(index) {
             const msgDiv = document.getElementById(`msg-text-${index}`);
             const currentText = currentChatMessages[index].content;
-            
-            // إخفاء الأزرار أثناء التعديل
             const wrapper = msgDiv.closest('.message-wrapper');
             wrapper.querySelector('.mini-btn').style.display = 'none';
 
@@ -400,7 +447,7 @@
             }
         }
 
-        function renderCurrentChat() {
+        function renderCurrentChat(animateLast = false) {
             const container = document.getElementById('chatContainer');
             container.innerHTML = '<div id="pdf-watermark">🍏</div>'; 
             
@@ -412,15 +459,23 @@
                             <button class="mini-btn edit-btn" onclick="editMessageInline(${index})" title="${uiText[currentLang].editTitle}">✏️</button>
                         </div>`;
                 } else {
+                    let isLastAndAnimate = animateLast && index === currentChatMessages.length - 1;
                     container.innerHTML += `
                         <div class="message-wrapper bot-wrapper">
                             <div class="bot-avatar">🍏</div>
-                            <div class="message bot-message" id="msg-text-${index}" dir="auto">${parseMarkdown(msg.content)}</div>
+                            <div class="message bot-message" id="msg-text-${index}" dir="auto">${isLastAndAnimate ? '' : parseMarkdown(msg.content)}</div>
                             <button class="mini-btn copy-btn" onclick="copyText(${index}, this)" title="${uiText[currentLang].copyTitle}">📋</button>
                         </div>`;
+                        
+                    // تطبيق حركة الكتابة فقط على آخر رسالة إذا طلبنا ذلك
+                    if(isLastAndAnimate) {
+                        setTimeout(() => {
+                            typeWriterHTML(document.getElementById(`msg-text-${index}`), parseMarkdown(msg.content));
+                        }, 50);
+                    }
                 }
             });
-            container.scrollTop = container.scrollHeight;
+            scrollToBottom();
         }
 
         async function sendMessage() {
@@ -438,27 +493,29 @@
             document.getElementById('suggestionsBox').style.display = 'none';
             document.getElementById('loadingIndicator').style.display = 'block';
 
-            // تمت إزالة الحقن اللغوي الصارم للسماح للنموذج بالرد بلغتك الطبيعية
+            // حقن مخفي لمنع التعريف المزعج والرد بحرية بناء على لغة المستخدم
+            let injection = "\n[System: Answer directly and professionally. DO NOT introduce yourself unless explicitly asked. Reply in the same language the user used.]";
+
             try {
                 const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_message: message, domain: selectedDomain })
+                    body: JSON.stringify({ user_message: message + injection, domain: selectedDomain })
                 });
 
                 if (!response.ok) throw new Error('Network Error');
                 const data = await response.json();
                 
                 currentChatMessages.push({ role: 'bot', content: data.reply });
-                renderCurrentChat();
+                renderCurrentChat(true); // نمرر true لتفعيل الأنيميشن للرسالة الأخيرة
                 saveChatToLocal(); 
             } catch (error) {
                 currentChatMessages.push({ role: 'bot', content: uiText[currentLang].errorMsg });
-                renderCurrentChat();
+                renderCurrentChat(true);
             } finally { document.getElementById('loadingIndicator').style.display = 'none'; }
         }
         function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(); }
 
-        /* --- محرك الـ PDF بنقاء صورة عالي (PNG format) --- */
+        // محرك الـ PDF (لا يقهر)
         function generatePremiumPDF() {
             const container = document.getElementById('chatContainer');
             if (currentChatMessages.length === 0) return;
@@ -473,8 +530,8 @@
             const opt = {
                 margin:       10,
                 filename:     'Nutri_Consultation.pdf',
-                image:        { type: 'png', quality: 1 }, // تغيير الصيغة إلى PNG للنقاء
-                html2canvas:  { scale: 3, useCORS: true, windowWidth: 800 }, // رفع الـ Scale للحفاظ على الجودة
+                image:        { type: 'png', quality: 1 },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, // فرض عرض الورقة برمجياً ليتطابق مع الـ CSS
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             
@@ -484,7 +541,8 @@
             });
         }
 
-        initDomains(); rotateSuggestions(); renderHistoryList();
+        // التهيئة الأولية
+        updateUI(); rotateSuggestions(); renderHistoryList();
     </script>
 </body>
 </html>

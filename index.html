@@ -7,6 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍏</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         :root {
@@ -56,7 +57,6 @@
         ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.3); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(150,150,150,0.6); }
 
-        /* استخدام 100dvh لإنقاذ تصميم الموبايل */
         body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; transition: background 0.4s, color 0.4s; }
 
         .lucide { width: 18px; height: 18px; stroke-width: 2.2; }
@@ -68,12 +68,14 @@
         .delete-btn .lucide { stroke: #ef4444; }
         html[dir="rtl"] .control-btn { direction: rtl; }
 
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
         .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
-        /* ارتفاع الشباك الجانبي مبني على الـ dvh ليناسب الهواتف */
-        .sidebar { position: fixed; top: 0; left: -320px; right: auto !important; width: 280px; height: 100vh; height: 100dvh; background: var(--sidebar-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: var(--sidebar-shadow); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px 15px calc(20px + env(safe-area-inset-bottom)); box-sizing: border-box; border-right: 1px solid var(--btn-border);}
+        .sidebar { position: fixed; top: 0; left: -320px; right: auto !important; width: 280px; height: 100vh; height: 100dvh; background: var(--sidebar-bg); backdrop-filter: blur(20px); box-shadow: var(--sidebar-shadow); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px 15px calc(20px + env(safe-area-inset-bottom)); box-sizing: border-box; border-right: 1px solid var(--btn-border);}
         .sidebar.open { left: 0; }
+        html[dir="ltr"] .sidebar { left: auto; right: -320px; box-shadow: -5px 0 25px rgba(0,0,0,0.08); border-right: none; border-left: 1px solid var(--btn-border);}
+        html[dir="ltr"] .sidebar.open { right: 0; left: auto; }
+
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--btn-border); padding-bottom: 15px; padding-inline: 5px; flex-shrink: 0;}
         .close-sidebar { background: none; border: none; color: var(--text-color); cursor: pointer; transition: 0.2s; display: flex; align-items: center;}
         .close-sidebar:hover { transform: scale(1.1); color: #ef4444;}
@@ -81,17 +83,13 @@
         .new-chat-btn { width: calc(100% - 10px); margin: 0 5px 20px; padding: 12px; background: #166534; color: white; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;}
         .new-chat-btn:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(22, 101, 52, 0.3);}
         
-        /* ضبط السكرول للقائمة الجانبية */
         .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 5px; padding-left: 5px;}
-        
-        /* تصميم المحادثة مع زر الحذف الفردي */
         .history-item-wrapper { display: flex; align-items: center; justify-content: space-between; background: transparent; border-radius: 10px; transition: all 0.2s ease; padding: 4px; }
         .history-item-wrapper:hover { background: var(--hover-item); }
         .history-item { flex: 1; padding: 8px 6px; border: none; background: transparent; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; color: var(--text-color); display: flex; align-items: center; gap: 10px; font-weight: 600;}
         .history-item .lucide { width: 16px; height: 16px; color: var(--sub-text); flex-shrink: 0; transition: 0.2s;}
         .history-item-wrapper:hover .history-item .lucide { color: var(--highlight-color); }
         
-        /* زر الحذف الفردي (Granular Deletion) */
         .delete-single-btn { background: none; border: none; color: var(--sub-text); cursor: pointer; padding: 6px; border-radius: 6px; transition: 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4; }
         .history-item-wrapper:hover .delete-single-btn { opacity: 1; }
         .delete-single-btn:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); opacity: 1;}
@@ -117,10 +115,9 @@
         .empty-state p { color: var(--sub-text); margin-top: 0; margin-bottom: 35px; font-size: 15px;}
         .suggestions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%; max-width: 650px; }
         
-        .suggestion-card { background: var(--sugg-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--btn-border); color: var(--text-color); padding: 16px; border-radius: 14px; font-size: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: start; box-shadow: 0 2px 6px rgba(0,0,0,0.02); line-height: 1.6; opacity: 0; animation: slideUpFade 0.5s ease forwards; display: flex; align-items: flex-start; gap: 10px;}
+        .suggestion-card { background: var(--sugg-bg); backdrop-filter: blur(8px); border: 1px solid var(--btn-border); color: var(--text-color); padding: 16px; border-radius: 14px; font-size: 14px; cursor: pointer; transition: all 0.3s ease; text-align: start; box-shadow: 0 2px 6px rgba(0,0,0,0.02); line-height: 1.6; opacity: 0; animation: slideUpFade 0.5s ease forwards; display: flex; align-items: flex-start; gap: 10px;}
         .suggestion-card .lucide { flex-shrink: 0; margin-top: 2px; color: var(--highlight-color);}
         .suggestion-card:hover { background: var(--btn-bg); transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-color: var(--highlight-color);}
-        
         .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), transparent); border: 1px solid var(--highlight-color); font-weight: 700; color: var(--highlight-color); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);}
         [data-theme="dark"] .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), transparent); }
 
@@ -184,26 +181,33 @@
         [data-theme="dark"] .inline-cancel { background: #1e293b; color: #cbd5e1; border-color: #334155;}
         [data-theme="dark"] .inline-cancel:hover { background: #334155; color: #f8fafc;}
 
-        /* رفع الصندوق وحمايته من التداخل مع الهواتف */
-        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px calc(15px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; display: flex; gap: 12px; align-items: center; z-index: 5; background: transparent; }
+        /* منطقة الإدخال مع الميكروفون */
+        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px calc(15px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; display: flex; gap: 10px; align-items: center; z-index: 5; background: transparent; }
         input[type="text"] { flex: 1; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(10px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
         input[type="text"]:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 4px var(--focus-glow), 0 4px 15px rgba(0,0,0,0.02); transform: translateY(-1px);}
         
-        button.action-btn { padding: 0 24px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none;}
+        /* زر التسجيل الصوتي */
+        .mic-btn { padding: 0; width: 56px; height: 56px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
+        .mic-btn:hover { background: rgba(150,150,150,0.1); transform: translateY(-2px);}
+        .mic-btn.recording { background: #ef4444; color: white; border-color: #ef4444; animation: pulseMic 1.5s infinite; }
+        @keyframes pulseMic { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        button.action-btn { padding: 0 20px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none;}
         button.action-btn.active { opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.2);}
         button.action-btn.active:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22, 101, 52, 0.3);}
         @keyframes buttonPulse { 0% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(22, 101, 52, 0); } 100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0); } }
         button.action-btn.active { animation: buttonPulse 2s infinite; }
 
-        button.pdf-btn { background: #ef4444; padding: 0 16px; opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); animation: none;}
+        button.pdf-btn { background: #ef4444; padding: 0; width: 56px; opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); animation: none; flex-shrink: 0;}
         button.pdf-btn:hover { background: #dc2626; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.25); transform: translateY(-2px);}
         
         .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 0 20px calc(15px + env(safe-area-inset-bottom, 0px)); opacity: 0.7; font-style: italic; }
 
         @media (max-width: 768px) {
-            .input-area { padding: 10px 15px calc(20px + env(safe-area-inset-bottom, 0px)); gap: 8px;} 
-            .action-btn { padding: 0 16px; height: 52px;}
-            input[type="text"] { padding: 14px 16px; font-size: 14px; }
+            .input-area { padding: 10px 15px calc(20px + env(safe-area-inset-bottom, 0px)); gap: 6px;} 
+            .action-btn, .mic-btn, .pdf-btn { width: 48px; height: 48px; padding: 0;}
+            .action-btn span { display: none; } /* إخفاء كلمة إرسال في الموبايل للتوفير */
+            input[type="text"] { padding: 12px 15px; font-size: 14px; }
             .top-controls { top: 12px; left: 12px; gap: 6px; padding: 6px;}
             .control-btn { padding: 5px 10px; font-size: 12px; }
             .header { padding-top: 70px; }
@@ -257,7 +261,7 @@
         <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
         <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
-        <button class="control-btn delete-btn" id="clearBtn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
+        <button class="control-btn delete-btn" id="clearBtn" onclick="clearCurrentChat()"><i data-lucide="trash-2"></i></button>
     </div>
 
     <div class="header">
@@ -279,6 +283,7 @@
 
     <div class="input-area">
         <button class="action-btn pdf-btn" id="pdfBtn" onclick="exportToPDF()" title="حفظ كمستند PDF"><i data-lucide="download"></i></button>
+        <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecord()" title="إدخال صوتي"><i data-lucide="mic"></i></button>
         <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)" oninput="toggleSendButton()">
         <button class="action-btn" id="sendBtn" onclick="sendMessage()"><i data-lucide="send"></i> <span id="sendText">إرسال</span></button>
     </div>
@@ -299,16 +304,16 @@
             ar: {
                 themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة",
                 welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...",
-                inputPlaceholder: "اسأل Nutri عن أي استشارة غذائية...", sendBtn: "إرسال", 
-                support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
+                inputPlaceholder: "تحدث أو اكتب استشارتك الغذائية...", sendBtn: "إرسال", 
+                clearBtn: "", support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
                 disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء",
                 healthTip: "نصيحة صحية سريعة"
             },
             en: {
                 themeLight: "Light", themeDark: "Dark", langToggle: "AR", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat",
                 welcomeTitle: "How can I assist you today?", domainDefault: "Select Consultation Domain (Optional)...",
-                inputPlaceholder: "Ask Nutri for dietary or tech advice...", sendBtn: "Send", 
-                support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
+                inputPlaceholder: "Speak or type your dietary advice...", sendBtn: "Send", 
+                clearBtn: "", support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
                 disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel",
                 healthTip: "Quick Health Tip"
             }
@@ -321,28 +326,18 @@
 
         const suggestionsPool = {
             ar: [
-                {icon: "info", text: "كيف أقرأ البطاقة الغذائية بشكل صحيح؟"}, 
-                {icon: "shield-check", text: "أفضل طرق حفظ الأطعمة في الثلاجة؟"}, 
-                {icon: "flame", text: "طريقة صحية لقلي الطعام بأقل ضرر؟"}, 
-                {icon: "leaf", text: "بدائل صحية وموفرة للسكر الأبيض؟"}, 
-                {icon: "zap", text: "كيف أرفع طاقتي في الصباح بدون كافيين؟"}, 
-                {icon: "droplet", text: "هل شرب الماء وسط الأكل مضر حقاً؟"},
-                {icon: "activity", text: "أفضل وجبة خفيفة قبل وبعد التمرين؟"}, 
-                {icon: "alert-triangle", text: "كيف أتأكد من سلامة الدجاج المخزن؟"}, 
-                {icon: "apple", text: "كيف أغسل الخضروات والفواكه بطريقة علمية؟"},
-                {icon: "heart", text: "أطعمة تساعد على تحسين جودة النوم؟"}
+                {icon: "info", text: "كيف أقرأ البطاقة الغذائية بشكل صحيح؟"}, {icon: "shield-check", text: "أفضل طرق حفظ الأطعمة في الثلاجة؟"}, 
+                {icon: "flame", text: "طريقة صحية لقلي الطعام بأقل ضرر؟"}, {icon: "leaf", text: "بدائل صحية وموفرة للسكر الأبيض؟"}, 
+                {icon: "zap", text: "كيف أرفع طاقتي في الصباح بدون كافيين؟"}, {icon: "droplet", text: "هل شرب الماء وسط الأكل مضر حقاً؟"},
+                {icon: "activity", text: "أفضل وجبة خفيفة قبل وبعد التمرين؟"}, {icon: "alert-triangle", text: "كيف أتأكد من سلامة الدجاج المخزن؟"}, 
+                {icon: "apple", text: "كيف أغسل الخضروات والفواكه بطريقة علمية؟"}, {icon: "heart", text: "أطعمة تساعد على تحسين جودة النوم؟"}
             ],
             en: [
-                {icon: "info", text: "How to read Nutrition Facts correctly?"}, 
-                {icon: "shield-check", text: "Best ways to store food in the fridge?"}, 
-                {icon: "flame", text: "Healthier ways to fry food?"}, 
-                {icon: "leaf", text: "Healthy alternatives to white sugar?"}, 
-                {icon: "zap", text: "How to boost energy without caffeine?"}, 
-                {icon: "droplet", text: "Is drinking water during meals bad?"},
-                {icon: "activity", text: "Best pre and post-workout snacks?"}, 
-                {icon: "alert-triangle", text: "How to ensure stored chicken is safe?"}, 
-                {icon: "apple", text: "How to scientifically wash vegetables?"},
-                {icon: "heart", text: "Foods that help improve sleep quality?"}
+                {icon: "info", text: "How to read Nutrition Facts correctly?"}, {icon: "shield-check", text: "Best ways to store food in the fridge?"}, 
+                {icon: "flame", text: "Healthier ways to fry food?"}, {icon: "leaf", text: "Healthy alternatives to white sugar?"}, 
+                {icon: "zap", text: "How to boost energy without caffeine?"}, {icon: "droplet", text: "Is drinking water during meals bad?"},
+                {icon: "activity", text: "Best pre and post-workout snacks?"}, {icon: "alert-triangle", text: "How to ensure stored chicken is safe?"}, 
+                {icon: "apple", text: "How to scientifically wash vegetables?"}, {icon: "heart", text: "Foods that help improve sleep quality?"}
             ]
         };
 
@@ -366,75 +361,98 @@
             const isLight = document.body.getAttribute('data-theme') === 'light';
             document.getElementById('themeBtn').innerHTML = isLight ? `<i data-lucide="moon"></i> ${uiText[currentLang].themeDark}` : `<i data-lucide="sun"></i> ${uiText[currentLang].themeLight}`;
             
-            initDomains();
-            renderCurrentChat(); 
-            lucide.createIcons();
+            initDomains(); renderCurrentChat(); lucide.createIcons();
         }
 
         function toggleLang() {
             currentLang = currentLang === 'ar' ? 'en' : 'ar';
             document.documentElement.lang = currentLang;
             document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-            localStorage.setItem('nutri_lang', currentLang);
-            updateUI(); 
+            localStorage.setItem('nutri_lang', currentLang); updateUI(); 
         }
 
         function toggleTheme() {
             const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
             document.body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('nutri_theme', newTheme);
-            updateUI();
+            localStorage.setItem('nutri_theme', newTheme); updateUI();
         }
 
         function toggleSendButton() {
             const inputField = document.getElementById('userInput');
             const sendBtn = document.getElementById('sendBtn');
-            if(inputField.value.trim().length > 0) {
-                sendBtn.classList.add('active');
-            } else {
-                sendBtn.classList.remove('active');
+            if(inputField.value.trim().length > 0) { sendBtn.classList.add('active'); } 
+            else { sendBtn.classList.remove('active'); }
+        }
+
+        // إدراج المستشار الصوتي (Voice Input)
+        let recognition;
+        let isRecording = false;
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                const inputField = document.getElementById('userInput');
+                inputField.value += (inputField.value ? ' ' : '') + transcript;
+                toggleSendButton();
+                stopRecording();
+            };
+            recognition.onerror = function() { stopRecording(); };
+            recognition.onend = function() { stopRecording(); };
+        } else {
+            document.getElementById('micBtn').style.display = 'none'; // إخفاء إذا المتصفح لا يدعم
+        }
+
+        function toggleVoiceRecord() {
+            if(!recognition) return;
+            if(isRecording) { stopRecording(); }
+            else {
+                recognition.lang = currentLang === 'ar' ? 'ar-EG' : 'en-US';
+                recognition.start();
+                isRecording = true;
+                document.getElementById('micBtn').classList.add('recording');
             }
+        }
+
+        function stopRecording() {
+            if(recognition) recognition.stop();
+            isRecording = false;
+            document.getElementById('micBtn').classList.remove('recording');
         }
 
         function renderEmptyState() {
             let shuffled = suggestionsPool[currentLang].sort(() => 0.5 - Math.random()).slice(0, 3);
-            
             let cardsHtml = `
             <div class="suggestion-card primary-card" onclick="sendDynamicTip()" style="animation-delay: 0.1s">
-                <i data-lucide="sparkles"></i>
-                <span>${uiText[currentLang].healthTip}</span>
+                <i data-lucide="sparkles"></i> <span>${uiText[currentLang].healthTip}</span>
             </div>`;
-            
             shuffled.forEach((sugg, idx) => {
                 let delay = (idx + 2) * 0.1;
                 cardsHtml += `
                 <div class="suggestion-card" style="animation-delay: ${delay}s" onclick="document.getElementById('userInput').value = '${sugg.text}'; toggleSendButton(); sendMessage(false);">
-                    <i data-lucide="${sugg.icon}"></i>
-                    <span>${sugg.text}</span>
+                    <i data-lucide="${sugg.icon}"></i> <span>${sugg.text}</span>
                 </div>`;
             });
-            
             return `
                 <div class="empty-state">
                     <div class="apple-float">🍏</div>
                     <h2 style="margin-bottom: 5px;">${getGreeting()}</h2>
                     <p style="font-weight: 600; color: var(--text-color);">${uiText[currentLang].welcomeTitle}</p>
                     <div class="suggestions-grid">${cardsHtml}</div>
-                </div>
-            `;
+                </div>`;
         }
 
         function sendDynamicTip() {
-            const themesAr = ['جودة النوم', 'المناعة', 'توازن الهضم', 'الطاقة الذهنية', 'مضادات الأكسدة', 'سلامة الأغذية المنزلية', 'الترطيب وفوائد الماء', 'تغذية العضلات'];
-            const themesEn = ['Sleep Quality', 'Immunity', 'Gut Health', 'Mental Energy', 'Antioxidants', 'Home Food Safety', 'Hydration', 'Muscle Recovery'];
+            const themesAr = ['جودة النوم', 'المناعة', 'توازن الهضم', 'الطاقة الذهنية', 'مضادات الأكسدة', 'سلامة الأغذية المنزلية'];
+            const themesEn = ['Sleep Quality', 'Immunity', 'Gut Health', 'Mental Energy', 'Antioxidants', 'Home Food Safety'];
             const themes = currentLang === 'ar' ? themesAr : themesEn;
             const randomTheme = themes[Math.floor(Math.random() * themes.length)];
             const userMsg = currentLang === 'ar' ? 'نصيحة صحية سريعة...' : 'A quick health tip...';
             const hiddenInjection = `\n[System Rule: Give a highly unique, scientific health tip focusing exclusively on: ${randomTheme}. Keep it short, actionable, use formatting, and do not greet.]`;
-            
             document.getElementById('userInput').value = userMsg;
-            toggleSendButton();
-            sendMessage(false, "", hiddenInjection);
+            toggleSendButton(); sendMessage(false, "", hiddenInjection);
         }
 
         function parseMarkdown(text) { 
@@ -460,9 +478,7 @@
             else { scrollBtn.classList.remove('visible'); }
         }
 
-        function scrollToBottomManual() {
-            chatContainerNode.scrollTo({ top: chatContainerNode.scrollHeight, behavior: 'smooth' });
-        }
+        function scrollToBottomManual() { chatContainerNode.scrollTo({ top: chatContainerNode.scrollHeight, behavior: 'smooth' }); }
 
         let activeTypingTasks = [];
         document.addEventListener("visibilitychange", () => {
@@ -485,9 +501,7 @@
                     }
                     element.innerHTML = htmlStr.substring(0, i + 1); i++;
                     setTimeout(type, 8); 
-                } else {
-                    activeTypingTasks = activeTypingTasks.filter(t => t !== task);
-                }
+                } else { activeTypingTasks = activeTypingTasks.filter(t => t !== task); }
             }
             type();
         }
@@ -496,8 +510,7 @@
             const textToCopy = currentChatMessages[index].content;
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const originalHtml = btn.innerHTML; 
-                btn.innerHTML = '<i data-lucide="check"></i>';
-                lucide.createIcons();
+                btn.innerHTML = '<i data-lucide="check"></i>'; lucide.createIcons();
                 setTimeout(() => { btn.innerHTML = originalHtml; lucide.createIcons(); }, 2000);
             });
         }
@@ -528,7 +541,6 @@
             } else { renderCurrentChat(); }
         }
 
-        // توليد عنوان الشات بشكل ذكي
         function generateSmartTitle(firstMessage) {
             let cleanStr = firstMessage.replace(/[^\w\s\u0600-\u06FF]/g, ' ').replace(/\s+/g, ' ').trim();
             let words = cleanStr.split(' ');
@@ -538,10 +550,7 @@
         }
 
         let currentChatId = null; let currentChatMessages = [];
-        
-        function getFormattedTime() {
-            return new Date().toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' });
-        }
+        function getFormattedTime() { return new Date().toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }); }
 
         function toggleSidebar() { 
             document.getElementById('sidebar').classList.toggle('open'); 
@@ -562,19 +571,13 @@
             }
         }
 
-        // ميزة الحذف الفردي للمحادثة (Delete Single Chat)
         function deleteSingleChat(id, event) {
-            event.stopPropagation(); // لمنع فتح المحادثة أثناء محاولة مسحها
+            event.stopPropagation(); 
             if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح هذه المحادثة؟' : 'Are you sure you want to delete this chat?')) {
                 let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
                 delete chats[id];
                 localStorage.setItem('nutri_chats', JSON.stringify(chats));
-                
-                if(currentChatId === id) { // إذا مسح المحادثة المفتوحة حالياً
-                    currentChatId = Date.now().toString();
-                    currentChatMessages = [];
-                    renderCurrentChat();
-                }
+                if(currentChatId === id) { currentChatId = Date.now().toString(); currentChatMessages = []; renderCurrentChat(); }
                 renderHistoryList();
             }
         }
@@ -582,12 +585,8 @@
         function saveChatToLocal() {
             if (currentChatMessages.length === 0) return;
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
-            
             let title = chats[currentChatId]?.title;
-            if (!title) {
-                title = generateSmartTitle(currentChatMessages[0].content);
-            }
-            
+            if (!title) { title = generateSmartTitle(currentChatMessages[0].content); }
             chats[currentChatId] = { title: title, messages: currentChatMessages, date: new Date().toLocaleDateString() };
             localStorage.setItem('nutri_chats', JSON.stringify(chats)); renderHistoryList();
         }
@@ -623,9 +622,7 @@
             msgArea.innerHTML = ''; 
             
             if (currentChatMessages.length === 0) {
-                msgArea.innerHTML = renderEmptyState();
-                lucide.createIcons();
-                return;
+                msgArea.innerHTML = renderEmptyState(); lucide.createIcons(); return;
             }
             
             currentChatMessages.forEach((msg, index) => {
@@ -648,10 +645,7 @@
                             </div>
                             <div class="timestamp">${timeStr}</div>
                         </div>`;
-                        
-                    if(isLastAndAnimate) {
-                        setTimeout(() => { typeWriterHTML(document.getElementById(`msg-text-${index}`), parseMarkdown(msg.content)); }, 50);
-                    }
+                    if(isLastAndAnimate) { setTimeout(() => { typeWriterHTML(document.getElementById(`msg-text-${index}`), parseMarkdown(msg.content)); }, 50); }
                 }
             });
             lucide.createIcons();
@@ -667,11 +661,9 @@
             const selectedDomain = document.getElementById('domainSelect').value;
             
             currentChatMessages.push({ role: 'user', content: message, time: getFormattedTime() });
-            renderCurrentChat();
-            scrollToBottomManual();
+            renderCurrentChat(); scrollToBottomManual();
             
-            inputField.value = '';
-            toggleSendButton(); 
+            inputField.value = ''; toggleSendButton(); 
             document.getElementById('loadingIndicator').style.display = 'flex'; 
 
             let defaultInjection = "\n[System Rule: Answer the user directly. DO NOT say 'Hello', 'Welcome', or 'I am Nutri'. Skip all greetings and introductions. Be professional but conversational.]";
@@ -682,18 +674,15 @@
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_message: finalPrompt, domain: selectedDomain })
                 });
-
                 if (!response.ok) throw new Error('Network Error');
                 const data = await response.json();
                 
                 currentChatMessages.push({ role: 'bot', content: data.reply, time: getFormattedTime() });
                 document.getElementById('loadingIndicator').style.display = 'none'; 
-                renderCurrentChat(true); 
-                saveChatToLocal(); 
+                renderCurrentChat(true); saveChatToLocal(); 
             } catch (error) {
                 currentChatMessages.push({ role: 'bot', content: "Error connecting to the server.", time: getFormattedTime() });
-                document.getElementById('loadingIndicator').style.display = 'none';
-                renderCurrentChat(true);
+                document.getElementById('loadingIndicator').style.display = 'none'; renderCurrentChat(true);
             }
         }
         function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(false); }
@@ -702,7 +691,6 @@
             if (currentChatMessages.length === 0) return;
             const printWindow = window.open('', '_blank');
             const isAr = currentLang === 'ar';
-            
             let htmlContent = `
             <!DOCTYPE html>
             <html dir="${isAr ? 'rtl' : 'ltr'}" lang="${currentLang}">
@@ -733,7 +721,6 @@
                     <p>${new Date().toLocaleString(isAr ? 'ar-EG' : 'en-US')}</p>
                 </div>
             `;
-            
             currentChatMessages.forEach(msg => {
                 if(msg.role === 'user') {
                     let roleName = isAr ? 'السؤال / الاستفسار:' : 'Question / Inquiry:';
@@ -743,16 +730,8 @@
                     htmlContent += `<div class="msg-block"><div class="role-bot">${roleName}</div><div class="text-content bot-content">${parseMarkdown(msg.content)}</div></div>`;
                 }
             });
-
-            htmlContent += `
-                <div class="footer">
-                    <strong>Nutri AI Advisor</strong><br>
-                    Designed & Developed by Hazem El Helw
-                </div>
-            </body>
-            <script> window.onload = function() { setTimeout(function(){ window.print(); }, 500); } <\/script>
-            </html>`;
-
+            htmlContent += `<div class="footer"><strong>Nutri AI Advisor</strong><br>Designed & Developed by Hazem El Helw</div></body>
+            <script> window.onload = function() { setTimeout(function(){ window.print(); }, 500); } <\/script></html>`;
             printWindow.document.open(); printWindow.document.write(htmlContent); printWindow.document.close();
         }
 

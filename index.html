@@ -192,7 +192,6 @@
         input[type="text"] { flex: 1; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(10px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
         input[type="text"]:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 4px var(--focus-glow), 0 4px 15px rgba(0,0,0,0.02); transform: translateY(-1px);}
         
-        /* إضافة flex-shrink: 0 كدرع حماية للأزرار */
         button.action-btn { padding: 0 24px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none; flex-shrink: 0;}
         button.action-btn.active { opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.2);}
         button.action-btn.active:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22, 101, 52, 0.3);}
@@ -209,11 +208,8 @@
         
         .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 0 20px calc(15px + env(safe-area-inset-bottom, 0px)); opacity: 0.7; font-style: italic; flex-shrink: 0;}
 
-        /* --- حماية الموبايل الصارمة للمسافات والأزرار --- */
         @media (max-width: 768px) {
             .input-area { padding: 10px 15px calc(20px + env(safe-area-inset-bottom, 0px)); gap: 8px;} 
-            
-            /* منع الانكماش والحفاظ على الأزرار مربعة تماماً */
             .action-btn, .mic-btn, .pdf-btn { 
                 width: 48px !important; 
                 min-width: 48px !important; 
@@ -224,13 +220,9 @@
                 align-items: center !important; 
                 justify-content: center !important;
             }
-            
-            /* السماح لحقل الإدخال بالانكماش دون الضغط على الأزرار */
             input[type="text"] { padding: 14px 16px; font-size: 14px; flex: 1; min-width: 0; }
-            
-            .action-btn span { display: none !important; } /* إخفاء كلمة إرسال لتوفير المساحة */
+            .action-btn span { display: none !important; } 
             .action-btn .lucide { width: 20px !important; height: 20px !important; margin: 0 !important; }
-            
             .top-controls { top: 12px; left: 12px; gap: 6px; padding: 6px;}
             .control-btn { padding: 5px 10px; font-size: 12px; }
             .header { padding-top: 70px; }
@@ -465,6 +457,15 @@
             const themes = currentLang === 'ar' ? themesAr : themesEn;
             const randomTheme = themes[Math.floor(Math.random() * themes.length)];
             const userMsg = currentLang === 'ar' ? 'نصيحة صحية سريعة...' : 'A quick health tip...';
+            
+            // حقن الخادم المخصص للنصائح فقط
+            let chatHistory = currentChatMessages.slice(0, -1).slice(-4).map(msg => ({
+                role: msg.role,
+                content: msg.content
+            }));
+            
+            // إضافة التوجيه الخفي كرسالة نظام (System) مؤقتة للسيرفر
+            // سيتم التعامل معها من خلال تعديل الدالة لتقبل التوجيهات
             const hiddenInjection = `\n[System Rule: Give a highly unique, scientific health tip focusing exclusively on: ${randomTheme}. Keep it short, actionable, use formatting, and do not greet.]`;
             document.getElementById('userInput').value = userMsg;
             toggleSendButton(); sendMessage(false, "", hiddenInjection);
@@ -681,14 +682,25 @@
             inputField.value = ''; toggleSendButton(); 
             document.getElementById('loadingIndicator').style.display = 'flex'; 
 
-            let defaultInjection = "\n[System Rule: Answer the user directly. DO NOT say 'Hello', 'Welcome', or 'I am Nutri'. Skip all greetings and introductions. Be professional but conversational.]";
-            let finalPrompt = message + (specialInjection ? specialInjection : defaultInjection);
+            // تم نقل التعليمات الأساسية للخادم، سنحتفظ فقط بالحقن الخاص بالنصيحة السريعة إن وُجد
+            let finalMessage = message + (specialInjection ? specialInjection : "");
+            
+            // استخراج آخر 4 رسائل كـ "ذاكرة قصيرة" (نستثني الرسالة الحالية لأننا سنرسلها في user_message)
+            let chatHistory = currentChatMessages.slice(0, -1).slice(-4).map(msg => ({
+                role: msg.role,
+                content: msg.content
+            }));
 
             try {
                 const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_message: finalPrompt, domain: selectedDomain })
+                    body: JSON.stringify({ 
+                        user_message: finalMessage, 
+                        domain: selectedDomain,
+                        history: chatHistory 
+                    })
                 });
+
                 if (!response.ok) throw new Error('Network Error');
                 const data = await response.json();
                 

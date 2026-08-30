@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-width=1.0">
     <title>Nutri - AI Advisor</title>
+    <!-- الأيقونة المصغرة -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍏</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at center, #ffffff 0%, #f4fdf8 40%, #d1fae5 100%);
@@ -21,7 +23,7 @@
             --sugg-hover: rgba(220, 248, 198, 0.9);
             --sidebar-bg: #ffffff;
             --sidebar-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            --highlight-color: #059669; /* أخضر زمردي للوضع الساطع */
+            --highlight-color: #059669;
         }
 
         [data-theme="dark"] {
@@ -38,7 +40,7 @@
             --sugg-hover: rgba(0, 92, 75, 0.8);
             --sidebar-bg: #0f172a;
             --sidebar-shadow: 2px 0 10px rgba(0,0,0,0.5);
-            --highlight-color: #34d399; /* أخضر مشرق للوضع الداكن */
+            --highlight-color: #34d399;
         }
 
         body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: 0.3s; }
@@ -77,12 +79,12 @@
 
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; border-top: 1px solid rgba(150, 150, 150, 0.1); position: relative; scroll-behavior: smooth; }
         
-        .message-wrapper { display: flex; position: relative; margin-bottom: 20px; animation: fadeIn 0.4s ease-out forwards; width: 100%; }
-        .user-wrapper { justify-content: flex-start; flex-direction: row-reverse; }
-        html[dir="ltr"] .user-wrapper { justify-content: flex-end; flex-direction: row; }
+        .message-wrapper { display: flex; flex-direction: column; position: relative; margin-bottom: 25px; animation: fadeIn 0.4s ease-out forwards; width: 100%; }
+        .user-wrapper { align-items: flex-start; }
+        html[dir="ltr"] .user-wrapper { align-items: flex-end; }
         
-        .bot-wrapper { align-items: flex-end; gap: 10px; justify-content: flex-start; }
-        html[dir="ltr"] .bot-wrapper { flex-direction: row; }
+        .bot-wrapper-content { display: flex; align-items: flex-end; gap: 10px; justify-content: flex-start; width: 100%; }
+        html[dir="ltr"] .bot-wrapper-content { flex-direction: row; }
 
         .message { padding: 15px 20px; border-radius: 18px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); line-height: 1.7; max-width: 85%; unicode-bidi: plaintext; text-align: start; position: relative;}
         @keyframes fadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
@@ -94,18 +96,30 @@
         .bot-message { background-color: var(--bot-bg); color: var(--bot-text); border-bottom-right-radius: 4px; margin: 0; flex: 1; }
         html[dir="ltr"] .bot-message { border-bottom-left-radius: 4px; border-bottom-right-radius: 18px; }
         
-        /* تصميم الكلمات المميزة (Highlights) */
         .highlight-text { color: var(--highlight-color); font-weight: 700; display: inline-block;}
         .md-header { color: var(--highlight-color); font-size: 18px; margin: 15px 0 5px 0; font-weight: 700; border-bottom: 1px solid rgba(5, 150, 105, 0.2); display: inline-block; padding-bottom: 3px;}
 
         .mini-btn { position: absolute; top: -15px; background: var(--btn-bg); border: 1px solid var(--btn-border); color: var(--text-color); border-radius: 5px; padding: 4px 8px; font-size: 12px; cursor: pointer; opacity: 0; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-family: 'Cairo', sans-serif;}
-        .bot-wrapper:hover .mini-btn, .user-wrapper:hover .mini-btn { opacity: 1; }
+        .bot-wrapper-content:hover .mini-btn, .message-wrapper:hover .mini-btn { opacity: 1; }
         .mini-btn:hover { background: #166534; color: white; border-color: #166534;}
         
         .copy-btn { left: 10px; }
         html[dir="ltr"] .copy-btn { left: auto; right: 10px; }
-        .edit-btn { right: 10px; color: #eab308; }
+        .edit-btn { right: 10px; color: #eab308; top: -15px;}
         html[dir="ltr"] .edit-btn { right: auto; left: 10px; }
+
+        /* الطوابع الزمنية (Timestamps) */
+        .timestamp { font-size: 10px; color: var(--sub-text); margin-top: 5px; opacity: 0.8; padding: 0 5px;}
+        .user-wrapper .timestamp { align-self: flex-start; }
+        html[dir="ltr"] .user-wrapper .timestamp { align-self: flex-end; }
+        .bot-wrapper .timestamp { padding-inline-start: 45px; }
+
+        /* الأنميشن الجديد للتحميل (Typing Indicator) */
+        .typing-indicator { display: none; align-items: center; gap: 5px; margin-bottom: 20px; padding: 15px 20px; background: var(--bot-bg); border-radius: 18px; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); max-width: fit-content; margin-inline-start: 45px;}
+        .dot { width: 8px; height: 8px; background-color: var(--sub-text); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
         .inline-edit-area { width: 100%; display: flex; flex-direction: column; gap: 8px; }
         .inline-edit-area textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--btn-border); font-family: 'Cairo', sans-serif; background: var(--btn-bg); color: var(--text-color); box-sizing: border-box; resize: vertical; min-height: 80px;}
@@ -114,7 +128,6 @@
         .inline-save { background: #166534; color: white; }
         .inline-cancel { background: #ef4444; color: white; }
 
-        /* منطقة الإدخال للموبايل والويب */
         .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px 20px; box-sizing: border-box; display: flex; gap: 10px; align-items: center; z-index: 5; }
         input[type="text"] { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 16px; outline: none; }
         button.action-btn { padding: 0 20px; height: 54px; background: #166534; color: white; border: none; border-radius: 12px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 16px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
@@ -122,11 +135,10 @@
         button.pdf-btn { background: #ef4444; padding: 0 15px; }
         button.pdf-btn:hover { background: #dc2626; }
         
-        .loading { display: none; text-align: center; color: var(--sub-text); margin-bottom: 10px; font-weight: bold; }
         .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 0 20px 15px; opacity: 0.7; font-style: italic; }
 
         @media (max-width: 768px) {
-            .input-area { padding: 10px 15px 30px; } /* رفع الصندوق للموبايل بقوة */
+            .input-area { padding: 10px 15px 30px; } 
             .action-btn { padding: 0 15px; height: 50px; font-size: 14px; }
             input[type="text"] { padding: 12px; font-size: 14px; }
             .top-controls { top: 15px; left: 15px; gap: 6px; }
@@ -134,24 +146,6 @@
             .header { padding-top: 65px; }
             .header h1 { font-size: 24px; }
             .mini-btn { opacity: 1; top: -10px; padding: 2px 6px; font-size: 10px;} 
-        }
-
-        /* --- ثورة الـ PDF (الطباعة الأصلية للمتصفح) --- */
-        #print-header, #print-footer, #print-watermark { display: none; }
-        
-        @media print {
-            body { background: white !important; color: black !important; }
-            .sidebar, .top-controls, .input-area, .header, .domain-selector, .suggestions-container, .disclaimer, .mini-btn, .loading { display: none !important; }
-            .chat-container { overflow: visible !important; height: auto !important; border: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
-            .message-wrapper { page-break-inside: avoid !important; margin-bottom: 15px !important; }
-            .message { box-shadow: none !important; border: 1px solid #cbd5e1 !important; color: black !important; }
-            .user-message { background-color: #f8fafc !important; }
-            .bot-message { background-color: #ffffff !important; border: 1px solid #166534 !important; }
-            .highlight-text, .md-header { color: #166534 !important; }
-            
-            #print-header { display: block; text-align: center; font-size: 24px; font-weight: bold; color: #166534; border-bottom: 2px solid #166534; padding-bottom: 10px; margin-bottom: 20px; }
-            #print-footer { display: block; text-align: center; font-size: 12px; margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; color: #64748b; }
-            #print-watermark { display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 200px; opacity: 0.05; z-index: -1; pointer-events: none; }
         }
     </style>
 </head>
@@ -197,17 +191,15 @@
     <div class="suggestions-container" id="suggestionsBox"></div>
 
     <div class="chat-container" id="chatContainer">
-        <!-- عناصر الطباعة (PDF) -->
-        <div id="print-watermark">🍏</div>
-        <div id="print-header">🍏 Nutri Consultation Report</div>
-        <div id="print-messages-area"></div>
-        <div id="print-footer">Designed & Developed by Hazem El Helw</div>
+        <div id="messagesArea"></div>
+        <!-- مؤشر الكتابة الأنيق الجديد -->
+        <div class="typing-indicator" id="loadingIndicator">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
     </div>
-    
-    <div class="loading" id="loadingIndicator">Nutri يحلل البيانات ويصيغ الرد... ⏳</div>
 
     <div class="input-area">
-        <button class="action-btn pdf-btn" id="pdfBtn" onclick="generatePremiumPDF()" title="حفظ كمستند PDF">📥 PDF</button>
+        <button class="action-btn pdf-btn" id="pdfBtn" onclick="exportToPDF()" title="حفظ كمستند PDF">📥 PDF</button>
         <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)">
         <button class="action-btn" id="sendBtn" onclick="sendMessage()">إرسال</button>
     </div>
@@ -216,20 +208,19 @@
     <script>
         document.body.setAttribute('data-theme', savedTheme);
         let currentLang = savedLang;
-        let isUserAtBottom = true; // مستشعر الاسكرول
         
         const uiText = {
             ar: {
                 themeLight: "☀️ ساطع", themeDark: "🌙 مظلم", langToggle: "🌐 EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "+ محادثة جديدة",
                 subHeader: "مستشارك الذكي في التغذية وتكنولوجيا الأغذية", domainDefault: "اختر مجال الاستشارة التخصصي...",
-                inputPlaceholder: "اسأل Nutri عن أي استشارة غذائية...", sendBtn: "إرسال", loading: "Nutri يحلل البيانات ويصيغ الرد... ⏳",
+                inputPlaceholder: "اسأل Nutri عن أي استشارة غذائية...", sendBtn: "إرسال", 
                 clearBtn: "🗑️ مسح", support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
                 disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء"
             },
             en: {
                 themeLight: "☀️ Light", themeDark: "🌙 Dark", langToggle: "🌐 AR", menuText: "History", historyTitle: "Chat History", newChatBtn: "+ New Chat",
                 subHeader: "Your Smart Advisor in Nutrition & Food Tech", domainDefault: "Select Consultation Domain...",
-                inputPlaceholder: "Ask Nutri for dietary or tech advice...", sendBtn: "Send", loading: "Nutri is analyzing and formulating a reply... ⏳",
+                inputPlaceholder: "Ask Nutri for dietary or tech advice...", sendBtn: "Send", 
                 clearBtn: "🗑️ Clear", support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
                 disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel"
             }
@@ -254,7 +245,6 @@
             document.getElementById('subHeader').textContent = uiText[currentLang].subHeader;
             document.getElementById('userInput').placeholder = uiText[currentLang].inputPlaceholder;
             document.getElementById('sendBtn').textContent = uiText[currentLang].sendBtn;
-            document.getElementById('loadingIndicator').textContent = uiText[currentLang].loading;
             document.getElementById('clearBtn').innerHTML = uiText[currentLang].clearBtn;
             document.getElementById('supportText').textContent = uiText[currentLang].support;
             document.getElementById('creditText').innerHTML = uiText[currentLang].credit;
@@ -303,13 +293,11 @@
         }
         setInterval(rotateSuggestions, 20000);
 
-        // المترجم الذكي للعلامات (تصميم الهايلايت الأخضر)
         function parseMarkdown(text) { 
             let html = text;
             html = html.replace(/### (.*?)(?:\n|$)/g, '<div class="md-header">$1</div><br>');
             html = html.replace(/## (.*?)(?:\n|$)/g, '<div class="md-header" style="font-size:20px;">$1</div><br>');
             html = html.replace(/# (.*?)(?:\n|$)/g, '<div class="md-header" style="font-size:22px;">$1</div><br>');
-            // استبدال النجوم بفئة highlight-text لتعطي اللون الأخضر الديناميكي
             html = html.replace(/\*\*(.*?)\*\*/g, '<span class="highlight-text">$1</span>');
             html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
             html = html.replace(/^- (.*)$/gm, '• $1');
@@ -318,13 +306,7 @@
             return html; 
         }
 
-        // مستشعر الاسكرول
-        const chatContainerNode = document.getElementById('chatContainer');
-        chatContainerNode.addEventListener('scroll', () => {
-            isUserAtBottom = Math.abs(chatContainerNode.scrollHeight - chatContainerNode.scrollTop - chatContainerNode.clientHeight) < 20;
-        });
-
-        // محرك الآلة الكاتبة مع الاسكرول الذكي
+        // محرك الآلة الكاتبة بدون ربط المستخدم بالنزول الإجباري
         function typeWriterHTML(element, htmlStr) {
             let i = 0; element.innerHTML = "";
             function type() {
@@ -334,8 +316,8 @@
                         if (tagEnd !== -1) i = tagEnd;
                     }
                     element.innerHTML = htmlStr.substring(0, i + 1); i++;
-                    if(isUserAtBottom) chatContainerNode.scrollTo({ top: chatContainerNode.scrollHeight, behavior: 'smooth' });
-                    setTimeout(type, 15); 
+                    // تمت إزالة سطر التمرير الإجباري هنا لترك الحرية الكاملة للمستخدم
+                    setTimeout(type, 10); 
                 }
             }
             type();
@@ -349,7 +331,6 @@
             });
         }
 
-        // محرك التعديل النشط (Active Edit)
         function editMessageInline(index) {
             const msgDiv = document.getElementById(`msg-text-${index}`);
             const currentText = currentChatMessages[index].content;
@@ -368,7 +349,6 @@
             document.getElementById(`edit-input-${index}`).focus();
         }
 
-        // عند الحفظ: امسح ما بعد التعديل، وأعد إرسال النص للمحرك السحابي
         function saveInlineEdit(index) {
             const newText = document.getElementById(`edit-input-${index}`).value.trim();
             if(newText && newText !== currentChatMessages[index].content) {
@@ -380,6 +360,11 @@
         }
 
         let currentChatId = null; let currentChatMessages = [];
+        
+        function getFormattedTime() {
+            return new Date().toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
         function startNewChat() {
@@ -425,32 +410,40 @@
         }
 
         function renderCurrentChat(animateLast = false) {
-            const msgArea = document.getElementById('print-messages-area');
+            const msgArea = document.getElementById('messagesArea');
             msgArea.innerHTML = ''; 
             
             currentChatMessages.forEach((msg, index) => {
+                let timeStr = msg.time || ""; 
                 if (msg.role === 'user') {
                     msgArea.innerHTML += `
                         <div class="message-wrapper user-wrapper">
                             <div class="message user-message" id="msg-text-${index}" dir="auto">${parseMarkdown(msg.content)}</div>
                             <button class="mini-btn edit-btn" onclick="editMessageInline(${index})" title="${uiText[currentLang].editTitle}">✏️</button>
+                            <div class="timestamp">${timeStr}</div>
                         </div>`;
                 } else {
                     let isLastAndAnimate = animateLast && index === currentChatMessages.length - 1;
                     msgArea.innerHTML += `
                         <div class="message-wrapper bot-wrapper">
-                            <div class="bot-avatar">🍏</div>
-                            <div class="message bot-message" id="msg-text-${index}" dir="auto">${isLastAndAnimate ? '' : parseMarkdown(msg.content)}</div>
-                            <button class="mini-btn copy-btn" onclick="copyText(${index}, this)" title="${uiText[currentLang].copyTitle}">📋</button>
+                            <div class="bot-wrapper-content">
+                                <div class="bot-avatar">🍏</div>
+                                <div class="message bot-message" id="msg-text-${index}" dir="auto">${isLastAndAnimate ? '' : parseMarkdown(msg.content)}</div>
+                                <button class="mini-btn copy-btn" onclick="copyText(${index}, this)" title="${uiText[currentLang].copyTitle}">📋</button>
+                            </div>
+                            <div class="timestamp">${timeStr}</div>
                         </div>`;
                         
                     if(isLastAndAnimate) {
-                        isUserAtBottom = true; // إجبار النزول للرسالة الجديدة
                         setTimeout(() => { typeWriterHTML(document.getElementById(`msg-text-${index}`), parseMarkdown(msg.content)); }, 50);
                     }
                 }
             });
-            if(!animateLast) chatContainerNode.scrollTo({ top: chatContainerNode.scrollHeight, behavior: 'smooth' });
+            // النزول التلقائي يتم مرة واحدة فقط عند إرسال الرسالة وليس أثناء الكتابة
+            if(animateLast === false || currentChatMessages.length > 0) {
+                const container = document.getElementById('chatContainer');
+                container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            }
         }
 
         async function sendMessage(isEdit = false, editText = "") {
@@ -461,12 +454,13 @@
             if (!currentChatId) currentChatId = Date.now().toString();
             const selectedDomain = document.getElementById('domainSelect').value;
             
-            currentChatMessages.push({ role: 'user', content: message });
+            // إضافة وقت الرسالة
+            currentChatMessages.push({ role: 'user', content: message, time: getFormattedTime() });
             renderCurrentChat();
             
             inputField.value = '';
             document.getElementById('suggestionsBox').style.display = 'none';
-            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('loadingIndicator').style.display = 'flex'; // إظهار النقاط المتحركة
 
             let injection = "\n[System: Answer directly and professionally. DO NOT introduce yourself unless explicitly asked. Reply in the same language the user used.]";
 
@@ -479,20 +473,81 @@
                 if (!response.ok) throw new Error('Network Error');
                 const data = await response.json();
                 
-                currentChatMessages.push({ role: 'bot', content: data.reply });
-                renderCurrentChat(true); saveChatToLocal(); 
+                currentChatMessages.push({ role: 'bot', content: data.reply, time: getFormattedTime() });
+                document.getElementById('loadingIndicator').style.display = 'none'; // إخفاء النقاط
+                renderCurrentChat(true); 
+                saveChatToLocal(); 
             } catch (error) {
-                currentChatMessages.push({ role: 'bot', content: uiText[currentLang].errorMsg });
+                currentChatMessages.push({ role: 'bot', content: uiText[currentLang].errorMsg, time: getFormattedTime() });
+                document.getElementById('loadingIndicator').style.display = 'none';
                 renderCurrentChat(true);
-            } finally { document.getElementById('loadingIndicator').style.display = 'none'; }
+            }
         }
         function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(false); }
 
-        /* --- محرك الطباعة الأصلية (Native Print API) --- */
-        function generatePremiumPDF() {
+        /* --- محرك الـ PDF الثوري (New Tab Document Method) --- */
+        function exportToPDF() {
             if (currentChatMessages.length === 0) return;
-            // هذا السطر يستدعي نافذة الطباعة الرسمية للمتصفح (وهي الطريقة الاحترافية لحفظ الـ PDF)
-            window.print();
+            
+            // فتح نافذة جديدة فارغة
+            const printWindow = window.open('', '_blank');
+            
+            // بناء مستند HTML نظيف ومستقل تماماً للطباعة
+            let htmlContent = `
+            <!DOCTYPE html>
+            <html dir="${currentLang === 'ar' ? 'rtl' : 'ltr'}" lang="${currentLang}">
+            <head>
+                <title>Nutri Consultation - ${new Date().toLocaleDateString()}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+                <style>
+                    body { font-family: 'Cairo', sans-serif; padding: 40px; color: #000; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.8;}
+                    .header { text-align: center; border-bottom: 2px solid #166534; padding-bottom: 10px; margin-bottom: 30px; }
+                    .header h2 { color: #166534; margin: 0; font-size: 26px;}
+                    .header p { color: #666; margin: 5px 0 0 0; font-size: 14px;}
+                    .msg-block { margin-bottom: 25px; page-break-inside: avoid; }
+                    .role-user { font-weight: bold; color: #166534; font-size: 16px; margin-bottom: 5px;}
+                    .role-bot { font-weight: bold; color: #0f172a; font-size: 16px; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;}
+                    .text-content { padding: 10px 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 15px;}
+                    .bot-content { background: #ffffff; border-color: #166534; border-right: 4px solid #166534; }
+                    html[dir="ltr"] .bot-content { border-right: 1px solid #166534; border-left: 4px solid #166534; }
+                    .highlight-text { color: #059669; font-weight: bold; }
+                    .md-header { color: #059669; font-weight: bold; font-size: 18px; margin-top: 10px; margin-bottom: 5px;}
+                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #eee; padding-top: 15px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h2>🍏 Nutri Consultation Report</h2>
+                    <p>${new Date().toLocaleString()}</p>
+                </div>
+            `;
+            
+            // حلقة استخراج المحادثة
+            currentChatMessages.forEach(msg => {
+                if(msg.role === 'user') {
+                    let roleName = currentLang === 'ar' ? 'السؤال / الاستفسار:' : 'Question / Inquiry:';
+                    htmlContent += `<div class="msg-block"><div class="role-user">${roleName}</div><div class="text-content">${msg.content}</div></div>`;
+                } else {
+                    let roleName = currentLang === 'ar' ? '🍏 استشارة نيوتري:' : '🍏 Nutri Advice:';
+                    htmlContent += `<div class="msg-block"><div class="role-bot">${roleName}</div><div class="text-content bot-content">${parseMarkdown(msg.content)}</div></div>`;
+                }
+            });
+
+            htmlContent += `
+                <div class="footer">
+                    <strong>Food Logic AI</strong><br>
+                    Designed & Developed by Hazem El Helw
+                </div>
+            </body>
+            <script>
+                // ننتظر قليلاً لتحميل الخطوط ثم نفتح نافذة الطباعة
+                window.onload = function() { setTimeout(function(){ window.print(); }, 500); }
+            <\/script>
+            </html>`;
+
+            printWindow.document.open();
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
         }
 
         updateUI(); rotateSuggestions(); renderHistoryList();

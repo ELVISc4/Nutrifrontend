@@ -24,7 +24,6 @@
             --sugg-hover: #f1f5f9;
             --sidebar-bg: rgba(255, 255, 255, 0.95);
             --glass-bg: rgba(255, 255, 255, 0.7);
-            --sidebar-shadow: 5px 0 25px rgba(0,0,0,0.08);
             --highlight-color: #059669;
             --focus-glow: rgba(5, 150, 105, 0.15);
             --icon-color: #475569;
@@ -45,7 +44,6 @@
             --sugg-hover: rgba(15, 23, 42, 0.8);
             --sidebar-bg: rgba(15, 23, 42, 0.95);
             --glass-bg: rgba(15, 23, 42, 0.7);
-            --sidebar-shadow: 5px 0 25px rgba(0,0,0,0.6);
             --highlight-color: #34d399;
             --focus-glow: rgba(52, 211, 153, 0.15);
             --icon-color: #94a3b8;
@@ -57,11 +55,11 @@
         ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.3); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(150,150,150,0.6); }
 
-        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; transition: background 0.4s, color 0.4s; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; transition: background 0.4s, color 0.4s; overflow-x: hidden;}
 
         .lucide { width: 18px; height: 18px; stroke-width: 2.2; }
 
-        .top-controls { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: row; gap: 8px; z-index: 10; direction: ltr !important; background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 8px; border-radius: 12px; border: 1px solid var(--btn-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .top-controls { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: row; gap: 8px; z-index: 10; direction: ltr !important; background: var(--glass-bg); backdrop-filter: blur(12px); padding: 8px; border-radius: 12px; border: 1px solid var(--btn-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
         .control-btn { padding: 6px 12px; background: transparent; color: var(--text-color); border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-family: 'Cairo', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;}
         .control-btn:hover { background: rgba(150,150,150,0.1); transform: translateY(-1px); }
         .delete-btn { color: #ef4444 !important; }
@@ -71,10 +69,29 @@
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
         .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
-        .sidebar { position: fixed; top: 0; left: -320px; right: auto !important; width: 280px; height: 100vh; height: 100dvh; background: var(--sidebar-bg); backdrop-filter: blur(20px); box-shadow: var(--sidebar-shadow); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px 15px calc(20px + env(safe-area-inset-bottom)); box-sizing: border-box; border-right: 1px solid var(--btn-border);}
-        .sidebar.open { left: 0; }
-        html[dir="ltr"] .sidebar { left: auto; right: -320px; box-shadow: -5px 0 25px rgba(0,0,0,0.08); border-right: none; border-left: 1px solid var(--btn-border);}
-        html[dir="ltr"] .sidebar.open { right: 0; left: auto; }
+        /* الهندسة الجديدة للقائمة الجانبية (GPU Accelerated) */
+        .sidebar { 
+            position: fixed; top: 0; right: 0; left: auto; width: 280px; height: 100vh; height: 100dvh; 
+            background: var(--sidebar-bg); backdrop-filter: blur(20px); 
+            box-shadow: -5px 0 25px rgba(0,0,0,0.08); 
+            transform: translateX(110%); /* الشباك مخفي خارج الشاشة لليمين */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 1000; display: flex; flex-direction: column; 
+            padding: 20px 15px 30px; box-sizing: border-box; border-left: 1px solid var(--btn-border);
+        }
+        [data-theme="dark"] .sidebar { box-shadow: -5px 0 25px rgba(0,0,0,0.6); }
+        
+        .sidebar.open { transform: translateX(0); } /* سحب الشباك للداخل */
+
+        /* للغة الإنجليزية (يفتح من اليسار) */
+        html[dir="ltr"] .sidebar { 
+            right: auto; left: 0; 
+            transform: translateX(-110%); 
+            box-shadow: 5px 0 25px rgba(0,0,0,0.08); 
+            border-left: none; border-right: 1px solid var(--btn-border);
+        }
+        html[dir="ltr"][data-theme="dark"] .sidebar { box-shadow: 5px 0 25px rgba(0,0,0,0.6); }
+        html[dir="ltr"] .sidebar.open { transform: translateX(0); }
 
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--btn-border); padding-bottom: 15px; padding-inline: 5px; flex-shrink: 0;}
         .close-sidebar { background: none; border: none; color: var(--text-color); cursor: pointer; transition: 0.2s; display: flex; align-items: center;}
@@ -83,7 +100,9 @@
         .new-chat-btn { width: calc(100% - 10px); margin: 0 5px 20px; padding: 12px; background: #166534; color: white; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;}
         .new-chat-btn:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(22, 101, 52, 0.3);}
         
-        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 5px; padding-left: 5px;}
+        /* حل السكرول السحري (min-height: 0) */
+        .history-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 5px; padding-left: 5px;}
+        
         .history-item-wrapper { display: flex; align-items: center; justify-content: space-between; background: transparent; border-radius: 10px; transition: all 0.2s ease; padding: 4px; }
         .history-item-wrapper:hover { background: var(--hover-item); }
         .history-item { flex: 1; padding: 8px 6px; border: none; background: transparent; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; color: var(--text-color); display: flex; align-items: center; gap: 10px; font-weight: 600;}
@@ -105,7 +124,7 @@
         select { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(5px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 14px; outline: none; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
         select:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 3px var(--focus-glow); }
 
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px 20px 40px; max-width: 850px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; scroll-behavior: smooth; }
+        .chat-container { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 20px 40px; max-width: 850px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; scroll-behavior: smooth; }
         
         .apple-float { font-size: 90px; margin-bottom: 5px; display: inline-block; animation: floatApple 4s ease-in-out infinite; filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); }
         @keyframes floatApple { 0%, 100% { transform: translateY(0px); filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); } 50% { transform: translateY(-15px); filter: drop-shadow(0 25px 15px rgba(22, 101, 52, 0.15)); } }
@@ -115,9 +134,10 @@
         .empty-state p { color: var(--sub-text); margin-top: 0; margin-bottom: 35px; font-size: 15px;}
         .suggestions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%; max-width: 650px; }
         
-        .suggestion-card { background: var(--sugg-bg); backdrop-filter: blur(8px); border: 1px solid var(--btn-border); color: var(--text-color); padding: 16px; border-radius: 14px; font-size: 14px; cursor: pointer; transition: all 0.3s ease; text-align: start; box-shadow: 0 2px 6px rgba(0,0,0,0.02); line-height: 1.6; opacity: 0; animation: slideUpFade 0.5s ease forwards; display: flex; align-items: flex-start; gap: 10px;}
+        .suggestion-card { background: var(--sugg-bg); backdrop-filter: blur(8px); border: 1px solid var(--btn-border); color: var(--text-color); padding: 16px; border-radius: 14px; font-size: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: start; box-shadow: 0 2px 6px rgba(0,0,0,0.02); line-height: 1.6; opacity: 0; animation: slideUpFade 0.5s ease forwards; display: flex; align-items: flex-start; gap: 10px;}
         .suggestion-card .lucide { flex-shrink: 0; margin-top: 2px; color: var(--highlight-color);}
         .suggestion-card:hover { background: var(--btn-bg); transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-color: var(--highlight-color);}
+        
         .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), transparent); border: 1px solid var(--highlight-color); font-weight: 700; color: var(--highlight-color); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);}
         [data-theme="dark"] .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), transparent); }
 
@@ -181,18 +201,16 @@
         [data-theme="dark"] .inline-cancel { background: #1e293b; color: #cbd5e1; border-color: #334155;}
         [data-theme="dark"] .inline-cancel:hover { background: #334155; color: #f8fafc;}
 
-        /* منطقة الإدخال مع الميكروفون */
-        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px calc(15px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; display: flex; gap: 10px; align-items: center; z-index: 5; background: transparent; }
+        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px 25px; box-sizing: border-box; display: flex; gap: 10px; align-items: center; z-index: 5; background: transparent; }
         input[type="text"] { flex: 1; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(10px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
         input[type="text"]:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 4px var(--focus-glow), 0 4px 15px rgba(0,0,0,0.02); transform: translateY(-1px);}
         
-        /* زر التسجيل الصوتي */
         .mic-btn { padding: 0; width: 56px; height: 56px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
         .mic-btn:hover { background: rgba(150,150,150,0.1); transform: translateY(-2px);}
         .mic-btn.recording { background: #ef4444; color: white; border-color: #ef4444; animation: pulseMic 1.5s infinite; }
         @keyframes pulseMic { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
-        button.action-btn { padding: 0 20px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none;}
+        button.action-btn { padding: 0 24px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none;}
         button.action-btn.active { opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.2);}
         button.action-btn.active:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22, 101, 52, 0.3);}
         @keyframes buttonPulse { 0% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(22, 101, 52, 0); } 100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0); } }
@@ -206,14 +224,14 @@
         @media (max-width: 768px) {
             .input-area { padding: 10px 15px calc(20px + env(safe-area-inset-bottom, 0px)); gap: 6px;} 
             .action-btn, .mic-btn, .pdf-btn { width: 48px; height: 48px; padding: 0;}
-            .action-btn span { display: none; } /* إخفاء كلمة إرسال في الموبايل للتوفير */
+            .action-btn span { display: none; } 
             input[type="text"] { padding: 12px 15px; font-size: 14px; }
             .top-controls { top: 12px; left: 12px; gap: 6px; padding: 6px;}
             .control-btn { padding: 5px 10px; font-size: 12px; }
             .header { padding-top: 70px; }
             .header h1 { font-size: 22px; }
             .mini-btn { opacity: 1; top: -12px; padding: 6px;} 
-            .scroll-bottom-btn { bottom: 100px; right: 15px; width: 38px; height: 38px;}
+            .scroll-bottom-btn { bottom: 100px; right: 15px; width: 38px; height: 38px; font-size: 16px;}
             .empty-state h2 { font-size: 24px; }
             .apple-float { font-size: 75px; }
         }
@@ -261,7 +279,7 @@
         <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
         <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
-        <button class="control-btn delete-btn" id="clearBtn" onclick="clearCurrentChat()"><i data-lucide="trash-2"></i></button>
+        <button class="control-btn delete-btn" id="clearBtn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
     </div>
 
     <div class="header">
@@ -305,7 +323,7 @@
                 themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة",
                 welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...",
                 inputPlaceholder: "تحدث أو اكتب استشارتك الغذائية...", sendBtn: "إرسال", 
-                clearBtn: "", support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
+                support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
                 disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء",
                 healthTip: "نصيحة صحية سريعة"
             },
@@ -313,7 +331,7 @@
                 themeLight: "Light", themeDark: "Dark", langToggle: "AR", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat",
                 welcomeTitle: "How can I assist you today?", domainDefault: "Select Consultation Domain (Optional)...",
                 inputPlaceholder: "Speak or type your dietary advice...", sendBtn: "Send", 
-                clearBtn: "", support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
+                support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
                 disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel",
                 healthTip: "Quick Health Tip"
             }
@@ -384,25 +402,21 @@
             else { sendBtn.classList.remove('active'); }
         }
 
-        // إدراج المستشار الصوتي (Voice Input)
-        let recognition;
-        let isRecording = false;
+        // المستشار الصوتي
+        let recognition; let isRecording = false;
         if ('webkitSpeechRecognition' in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            
+            recognition.continuous = false; recognition.interimResults = false;
             recognition.onresult = function(event) {
                 const transcript = event.results[0][0].transcript;
                 const inputField = document.getElementById('userInput');
                 inputField.value += (inputField.value ? ' ' : '') + transcript;
-                toggleSendButton();
-                stopRecording();
+                toggleSendButton(); stopRecording();
             };
             recognition.onerror = function() { stopRecording(); };
             recognition.onend = function() { stopRecording(); };
         } else {
-            document.getElementById('micBtn').style.display = 'none'; // إخفاء إذا المتصفح لا يدعم
+            document.getElementById('micBtn').style.display = 'none';
         }
 
         function toggleVoiceRecord() {
@@ -410,16 +424,13 @@
             if(isRecording) { stopRecording(); }
             else {
                 recognition.lang = currentLang === 'ar' ? 'ar-EG' : 'en-US';
-                recognition.start();
-                isRecording = true;
+                recognition.start(); isRecording = true;
                 document.getElementById('micBtn').classList.add('recording');
             }
         }
-
         function stopRecording() {
             if(recognition) recognition.stop();
-            isRecording = false;
-            document.getElementById('micBtn').classList.remove('recording');
+            isRecording = false; document.getElementById('micBtn').classList.remove('recording');
         }
 
         function renderEmptyState() {

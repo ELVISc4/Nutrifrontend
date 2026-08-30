@@ -376,7 +376,10 @@
             const isLight = document.body.getAttribute('data-theme') === 'light';
             document.getElementById('themeBtn').innerHTML = isLight ? `<i data-lucide="moon"></i> ${uiText[currentLang].themeDark}` : `<i data-lucide="sun"></i> ${uiText[currentLang].themeLight}`;
             
-            initDomains(); renderCurrentChat(); lucide.createIcons();
+            initDomains(); 
+            // استخدام true للحفاظ على الواجهة بدون إعادة رسم
+            renderCurrentChat(false, true); 
+            lucide.createIcons();
         }
 
         function toggleLang() {
@@ -458,14 +461,11 @@
             const randomTheme = themes[Math.floor(Math.random() * themes.length)];
             const userMsg = currentLang === 'ar' ? 'نصيحة صحية سريعة...' : 'A quick health tip...';
             
-            // حقن الخادم المخصص للنصائح فقط
             let chatHistory = currentChatMessages.slice(0, -1).slice(-4).map(msg => ({
                 role: msg.role,
                 content: msg.content
             }));
             
-            // إضافة التوجيه الخفي كرسالة نظام (System) مؤقتة للسيرفر
-            // سيتم التعامل معها من خلال تعديل الدالة لتقبل التوجيهات
             const hiddenInjection = `\n[System Rule: Give a highly unique, scientific health tip focusing exclusively on: ${randomTheme}. Keep it short, actionable, use formatting, and do not greet.]`;
             document.getElementById('userInput').value = userMsg;
             toggleSendButton(); sendMessage(false, "", hiddenInjection);
@@ -541,7 +541,7 @@
                 <div class="inline-edit-area">
                     <textarea id="edit-input-${index}" dir="auto">${currentText}</textarea>
                     <div class="inline-edit-controls">
-                        <button class="inline-btn inline-cancel" onclick="renderCurrentChat()">${uiText[currentLang].cancelEdit}</button>
+                        <button class="inline-btn inline-cancel" onclick="renderCurrentChat(false, true)">${uiText[currentLang].cancelEdit}</button>
                         <button class="inline-btn inline-save" onclick="saveInlineEdit(${index})">${uiText[currentLang].saveEdit}</button>
                     </div>
                 </div>
@@ -554,7 +554,7 @@
             if(newText && newText !== currentChatMessages[index].content) {
                 currentChatMessages = currentChatMessages.slice(0, index); 
                 sendMessage(true, newText); 
-            } else { renderCurrentChat(); }
+            } else { renderCurrentChat(false, true); } // تحديث بدون إعادة رسم الشاشة بالكامل
         }
 
         function generateSmartTitle(firstMessage) {
@@ -629,41 +629,87 @@
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             if (chats[id]) {
                 currentChatId = id; currentChatMessages = chats[id].messages;
-                renderCurrentChat(); setTimeout(scrollToBottomManual, 100);
+                // عند تحميل محادثة قديمة، نرسمها بدون أنيمشن
+                renderCurrentChat(false, true); 
+                setTimeout(scrollToBottomManual, 100);
             }
         }
 
-        function renderCurrentChat(animateLast = false) {
+        // --- الضربة القاضية لمشكلة الريفرش ---
+        // أضفت متغير isSoftUpdate لكي يضيف الرسالة الجديدة فقط بدلاً من إعادة مسح الشاشة
+        function renderCurrentChat(animateLast = false, isSoftUpdate = false) {
             const msgArea = document.getElementById('messagesArea');
-            msgArea.innerHTML = ''; 
             
+            // إذا كانت المحادثة فارغة، نرسم شاشة الترحيب
             if (currentChatMessages.length === 0) {
-                msgArea.innerHTML = renderEmptyState(); lucide.createIcons(); return;
+                msgArea.innerHTML = renderEmptyState(); 
+                lucide.createIcons(); 
+                return;
+            }
+
+            // إذا كان التحديث "ناعم" (Soft Update)، سنمسح الشاشة ونعيد رسمها بدون أنيمشن
+            if (isSoftUpdate) {
+                msgArea.innerHTML = '';
+                currentChatMessages.forEach((msg, index) => {
+                    let timeStr = msg.time || ""; 
+                    if (msg.role === 'user') {
+                        msgArea.innerHTML += `
+                            <div class="message-wrapper user-wrapper" style="animation: none; opacity: 1; transform: none;">
+                                <div class="message user-message" id="msg-text-${index}" dir="auto">${parseMarkdown(msg.content)}</div>
+                                <button class="mini-btn edit-btn" onclick="editMessageInline(${index})" title="${uiText[currentLang].editTitle}"><i data-lucide="pencil"></i></button>
+                                <div class="timestamp">${timeStr}</div>
+                            </div>`;
+                    } else {
+                        msgArea.innerHTML += `
+                            <div class="message-wrapper bot-wrapper" style="animation: none; opacity: 1; transform: none;">
+                                <div class="bot-wrapper-content">
+                                    <div class="bot-avatar">🍏</div>
+                                    <div class="message bot-message" id="msg-text-${index}" dir="auto">${parseMarkdown(msg.content)}</div>
+                                    <button class="mini-btn copy-btn" onclick="copyText(${index}, this)" title="${uiText[currentLang].copyTitle}"><i data-lucide="copy"></i></button>
+                                </div>
+                                <div class="timestamp">${timeStr}</div>
+                            </div>`;
+                    }
+                });
+                lucide.createIcons();
+                scrollToBottomManual();
+                return;
+            }
+
+            // في حالة إرسال رسالة جديدة، نضيف آخر رسالة فقط بدلاً من رسم كل شيء
+            const lastIndex = currentChatMessages.length - 1;
+            const lastMsg = currentChatMessages[lastIndex];
+            const timeStr = lastMsg.time || "";
+
+            // إزالة شاشة الترحيب إذا كانت موجودة
+            const emptyState = msgArea.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            if (lastMsg.role === 'user') {
+                msgArea.insertAdjacentHTML('beforeend', `
+                    <div class="message-wrapper user-wrapper">
+                        <div class="message user-message" id="msg-text-${lastIndex}" dir="auto">${parseMarkdown(lastMsg.content)}</div>
+                        <button class="mini-btn edit-btn" onclick="editMessageInline(${lastIndex})" title="${uiText[currentLang].editTitle}"><i data-lucide="pencil"></i></button>
+                        <div class="timestamp">${timeStr}</div>
+                    </div>`);
+            } else {
+                msgArea.insertAdjacentHTML('beforeend', `
+                    <div class="message-wrapper bot-wrapper">
+                        <div class="bot-wrapper-content">
+                            <div class="bot-avatar">🍏</div>
+                            <div class="message bot-message" id="msg-text-${lastIndex}" dir="auto"></div>
+                            <button class="mini-btn copy-btn" onclick="copyText(${lastIndex}, this)" title="${uiText[currentLang].copyTitle}"><i data-lucide="copy"></i></button>
+                        </div>
+                        <div class="timestamp">${timeStr}</div>
+                    </div>`);
+                
+                if(animateLast) {
+                    setTimeout(() => { typeWriterHTML(document.getElementById(`msg-text-${lastIndex}`), parseMarkdown(lastMsg.content)); }, 50);
+                } else {
+                    document.getElementById(`msg-text-${lastIndex}`).innerHTML = parseMarkdown(lastMsg.content);
+                }
             }
             
-            currentChatMessages.forEach((msg, index) => {
-                let timeStr = msg.time || ""; 
-                if (msg.role === 'user') {
-                    msgArea.innerHTML += `
-                        <div class="message-wrapper user-wrapper">
-                            <div class="message user-message" id="msg-text-${index}" dir="auto">${parseMarkdown(msg.content)}</div>
-                            <button class="mini-btn edit-btn" onclick="editMessageInline(${index})" title="${uiText[currentLang].editTitle}"><i data-lucide="pencil"></i></button>
-                            <div class="timestamp">${timeStr}</div>
-                        </div>`;
-                } else {
-                    let isLastAndAnimate = animateLast && index === currentChatMessages.length - 1;
-                    msgArea.innerHTML += `
-                        <div class="message-wrapper bot-wrapper">
-                            <div class="bot-wrapper-content">
-                                <div class="bot-avatar">🍏</div>
-                                <div class="message bot-message" id="msg-text-${index}" dir="auto">${isLastAndAnimate ? '' : parseMarkdown(msg.content)}</div>
-                                <button class="mini-btn copy-btn" onclick="copyText(${index}, this)" title="${uiText[currentLang].copyTitle}"><i data-lucide="copy"></i></button>
-                            </div>
-                            <div class="timestamp">${timeStr}</div>
-                        </div>`;
-                    if(isLastAndAnimate) { setTimeout(() => { typeWriterHTML(document.getElementById(`msg-text-${index}`), parseMarkdown(msg.content)); }, 50); }
-                }
-            });
             lucide.createIcons();
             if(animateLast === false) { scrollToBottomManual(); }
         }
@@ -677,15 +723,21 @@
             const selectedDomain = document.getElementById('domainSelect').value;
             
             currentChatMessages.push({ role: 'user', content: message, time: getFormattedTime() });
-            renderCurrentChat(); scrollToBottomManual();
+            
+            // تحديث الواجهة بإضافة الرسالة الأخيرة فقط بدلاً من إعادة مسح كل شيء
+            if(isEdit) {
+                renderCurrentChat(false, true);
+            } else {
+                renderCurrentChat(false, false); 
+            }
+            
+            scrollToBottomManual();
             
             inputField.value = ''; toggleSendButton(); 
             document.getElementById('loadingIndicator').style.display = 'flex'; 
 
-            // تم نقل التعليمات الأساسية للخادم، سنحتفظ فقط بالحقن الخاص بالنصيحة السريعة إن وُجد
             let finalMessage = message + (specialInjection ? specialInjection : "");
             
-            // استخراج آخر 4 رسائل كـ "ذاكرة قصيرة" (نستثني الرسالة الحالية لأننا سنرسلها في user_message)
             let chatHistory = currentChatMessages.slice(0, -1).slice(-4).map(msg => ({
                 role: msg.role,
                 content: msg.content
@@ -706,10 +758,12 @@
                 
                 currentChatMessages.push({ role: 'bot', content: data.reply, time: getFormattedTime() });
                 document.getElementById('loadingIndicator').style.display = 'none'; 
-                renderCurrentChat(true); saveChatToLocal(); 
+                renderCurrentChat(true, false); // إضافة الرد الجديد فقط
+                saveChatToLocal(); 
             } catch (error) {
                 currentChatMessages.push({ role: 'bot', content: "Error connecting to the server.", time: getFormattedTime() });
-                document.getElementById('loadingIndicator').style.display = 'none'; renderCurrentChat(true);
+                document.getElementById('loadingIndicator').style.display = 'none'; 
+                renderCurrentChat(true, false);
             }
         }
         function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(false); }

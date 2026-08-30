@@ -743,13 +743,21 @@
                 content: msg.content
             }));
 
+           // التأكد من وجود عنوان للشات قبل الإرسال للسحابة
+            let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
+            let title = chats[currentChatId]?.title;
+            if (!title) { title = generateSmartTitle(finalMessage); }
+
             try {
                 const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
+                        chat_id: currentChatId,
+                        title: title,
                         user_message: finalMessage, 
                         domain: selectedDomain,
-                        history: chatHistory 
+                        history: chatHistory,
+                        full_chat: currentChatMessages.slice(0, -1) // إرسال الشات بالكامل للسحابة
                     })
                 });
 

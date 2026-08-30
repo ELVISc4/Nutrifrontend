@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <meta name="viewport" content="width=device-width, initial-width=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nutri - AI Advisor</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍏</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -56,7 +56,8 @@
         ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.3); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(150,150,150,0.6); }
 
-        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; }
+        /* استخدام 100dvh لإنقاذ تصميم الموبايل */
+        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; transition: background 0.4s, color 0.4s; }
 
         .lucide { width: 18px; height: 18px; stroke-width: 2.2; }
 
@@ -67,28 +68,36 @@
         .delete-btn .lucide { stroke: #ef4444; }
         html[dir="rtl"] .control-btn { direction: rtl; }
 
-        /* ستارة الشباك الجانبي (Overlay) */
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
         .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
-        .sidebar { position: fixed; top: 0; left: -320px; right: auto !important; width: 280px; height: 100vh; background: var(--sidebar-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: var(--sidebar-shadow); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px 15px; box-sizing: border-box; border-right: 1px solid var(--btn-border);}
+        /* ارتفاع الشباك الجانبي مبني على الـ dvh ليناسب الهواتف */
+        .sidebar { position: fixed; top: 0; left: -320px; right: auto !important; width: 280px; height: 100vh; height: 100dvh; background: var(--sidebar-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: var(--sidebar-shadow); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px 15px calc(20px + env(safe-area-inset-bottom)); box-sizing: border-box; border-right: 1px solid var(--btn-border);}
         .sidebar.open { left: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--btn-border); padding-bottom: 15px; padding-inline: 5px;}
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--btn-border); padding-bottom: 15px; padding-inline: 5px; flex-shrink: 0;}
         .close-sidebar { background: none; border: none; color: var(--text-color); cursor: pointer; transition: 0.2s; display: flex; align-items: center;}
         .close-sidebar:hover { transform: scale(1.1); color: #ef4444;}
         
-        .new-chat-btn { width: calc(100% - 10px); margin: 0 5px 20px; padding: 12px; background: #166534; color: white; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .new-chat-btn { width: calc(100% - 10px); margin: 0 5px 20px; padding: 12px; background: #166534; color: white; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;}
         .new-chat-btn:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(22, 101, 52, 0.3);}
         
-        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 5px; padding-left: 5px;}
+        /* ضبط السكرول للقائمة الجانبية */
+        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 5px; padding-left: 5px;}
         
-        /* تصميم المحادثات الجديد الأنيق */
-        .history-item { padding: 12px 14px; background: transparent; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; transition: all 0.2s ease; color: var(--text-color); display: flex; align-items: center; gap: 10px; font-weight: 600;}
+        /* تصميم المحادثة مع زر الحذف الفردي */
+        .history-item-wrapper { display: flex; align-items: center; justify-content: space-between; background: transparent; border-radius: 10px; transition: all 0.2s ease; padding: 4px; }
+        .history-item-wrapper:hover { background: var(--hover-item); }
+        .history-item { flex: 1; padding: 8px 6px; border: none; background: transparent; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; color: var(--text-color); display: flex; align-items: center; gap: 10px; font-weight: 600;}
         .history-item .lucide { width: 16px; height: 16px; color: var(--sub-text); flex-shrink: 0; transition: 0.2s;}
-        .history-item:hover { background: var(--hover-item); }
-        .history-item:hover .lucide { color: var(--highlight-color); }
+        .history-item-wrapper:hover .history-item .lucide { color: var(--highlight-color); }
         
-        .sidebar-footer { margin-top: auto; border-top: 1px solid var(--btn-border); padding-top: 15px; text-align: center; font-size: 12px; color: var(--sub-text); line-height: 1.6; margin-inline: 5px;}
+        /* زر الحذف الفردي (Granular Deletion) */
+        .delete-single-btn { background: none; border: none; color: var(--sub-text); cursor: pointer; padding: 6px; border-radius: 6px; transition: 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4; }
+        .history-item-wrapper:hover .delete-single-btn { opacity: 1; }
+        .delete-single-btn:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); opacity: 1;}
+        .delete-single-btn .lucide { width: 14px; height: 14px; }
+        
+        .sidebar-footer { margin-top: 15px; border-top: 1px solid var(--btn-border); padding-top: 15px; text-align: center; font-size: 12px; color: var(--sub-text); line-height: 1.6; margin-inline: 5px; flex-shrink: 0;}
         .sidebar-footer a { color: var(--highlight-color); text-decoration: none; font-weight: bold; }
 
         .header { text-align: center; padding: 25px 20px 5px; z-index: 5; }
@@ -100,18 +109,8 @@
 
         .chat-container { flex: 1; overflow-y: auto; padding: 20px 20px 40px; max-width: 850px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; scroll-behavior: smooth; }
         
-        /* تأثير التفاحة العائمة الناعم (Float Animation) بدلاً من الدوران المشوه */
-        .apple-float { 
-            font-size: 90px; 
-            margin-bottom: 5px;
-            display: inline-block;
-            animation: floatApple 4s ease-in-out infinite;
-            filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25));
-        }
-        @keyframes floatApple {
-            0%, 100% { transform: translateY(0px); filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); }
-            50% { transform: translateY(-15px); filter: drop-shadow(0 25px 15px rgba(22, 101, 52, 0.15)); }
-        }
+        .apple-float { font-size: 90px; margin-bottom: 5px; display: inline-block; animation: floatApple 4s ease-in-out infinite; filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); }
+        @keyframes floatApple { 0%, 100% { transform: translateY(0px); filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); } 50% { transform: translateY(-15px); filter: drop-shadow(0 25px 15px rgba(22, 101, 52, 0.15)); } }
 
         .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; animation: fadeIn 0.6s ease-out; }
         .empty-state h2 { color: var(--text-color); margin-bottom: 5px; font-weight: 800; font-size: 28px;}
@@ -185,24 +184,24 @@
         [data-theme="dark"] .inline-cancel { background: #1e293b; color: #cbd5e1; border-color: #334155;}
         [data-theme="dark"] .inline-cancel:hover { background: #334155; color: #f8fafc;}
 
-        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px 25px; box-sizing: border-box; display: flex; gap: 12px; align-items: center; z-index: 5; background: transparent; }
+        /* رفع الصندوق وحمايته من التداخل مع الهواتف */
+        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px calc(15px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; display: flex; gap: 12px; align-items: center; z-index: 5; background: transparent; }
         input[type="text"] { flex: 1; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(10px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
         input[type="text"]:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 4px var(--focus-glow), 0 4px 15px rgba(0,0,0,0.02); transform: translateY(-1px);}
         
         button.action-btn { padding: 0 24px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none;}
         button.action-btn.active { opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.2);}
         button.action-btn.active:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22, 101, 52, 0.3);}
-        
         @keyframes buttonPulse { 0% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(22, 101, 52, 0); } 100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0); } }
         button.action-btn.active { animation: buttonPulse 2s infinite; }
 
         button.pdf-btn { background: #ef4444; padding: 0 16px; opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); animation: none;}
         button.pdf-btn:hover { background: #dc2626; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.25); transform: translateY(-2px);}
         
-        .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 0 20px 15px; opacity: 0.7; font-style: italic; }
+        .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 0 20px calc(15px + env(safe-area-inset-bottom, 0px)); opacity: 0.7; font-style: italic; }
 
         @media (max-width: 768px) {
-            .input-area { padding: 10px 15px 30px; gap: 8px;} 
+            .input-area { padding: 10px 15px calc(20px + env(safe-area-inset-bottom, 0px)); gap: 8px;} 
             .action-btn { padding: 0 16px; height: 52px;}
             input[type="text"] { padding: 14px 16px; font-size: 14px; }
             .top-controls { top: 12px; left: 12px; gap: 6px; padding: 6px;}
@@ -215,7 +214,6 @@
             .apple-float { font-size: 75px; }
         }
 
-        /* تنسيقات الطباعة الأصلية */
         #print-watermark { display: none; }
         @page { size: A4; margin: 0; }
         @media print {
@@ -238,7 +236,6 @@
 </script>
 <body data-theme="light">
 
-    <!-- الستارة الزجاجية لإغلاق الشباك الجانبي -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <div class="sidebar" id="sidebar">
@@ -260,7 +257,7 @@
         <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
         <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
-        <button class="control-btn delete-btn" id="clearBtn" onclick="clearCurrentChat()"><i data-lucide="trash-2"></i></button>
+        <button class="control-btn delete-btn" id="clearBtn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
     </div>
 
     <div class="header">
@@ -303,7 +300,7 @@
                 themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة",
                 welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...",
                 inputPlaceholder: "اسأل Nutri عن أي استشارة غذائية...", sendBtn: "إرسال", 
-                clearBtn: "", support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
+                support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
                 disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء",
                 healthTip: "نصيحة صحية سريعة"
             },
@@ -311,7 +308,7 @@
                 themeLight: "Light", themeDark: "Dark", langToggle: "AR", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat",
                 welcomeTitle: "How can I assist you today?", domainDefault: "Select Consultation Domain (Optional)...",
                 inputPlaceholder: "Ask Nutri for dietary or tech advice...", sendBtn: "Send", 
-                clearBtn: "", support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
+                support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
                 disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel",
                 healthTip: "Quick Health Tip"
             }
@@ -531,9 +528,8 @@
             } else { renderCurrentChat(); }
         }
 
-        /* --- العناوين الذكية (Smart Chat Titling Engine) --- */
+        // توليد عنوان الشات بشكل ذكي
         function generateSmartTitle(firstMessage) {
-            // تنظيف الرسالة من الرموز العشوائية واستخراج أول 4 كلمات فقط
             let cleanStr = firstMessage.replace(/[^\w\s\u0600-\u06FF]/g, ' ').replace(/\s+/g, ' ').trim();
             let words = cleanStr.split(' ');
             let title = words.slice(0, 4).join(' ');
@@ -555,17 +551,31 @@
         function startNewChat() {
             currentChatId = Date.now().toString(); currentChatMessages = [];
             renderCurrentChat(); 
-            if(window.innerWidth <= 768) toggleSidebar(); // إغلاق القائمة في الموبايل
+            if(window.innerWidth <= 768) toggleSidebar(); 
         }
 
-        function clearCurrentChat() {
-            if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح هذه المحادثة؟' : 'Are you sure you want to clear this chat?')) {
-                if(currentChatId) {
-                    let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
-                    delete chats[currentChatId]; localStorage.setItem('nutri_chats', JSON.stringify(chats));
-                }
+        function clearAllChats() {
+            if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح كافة المحادثات؟' : 'Are you sure you want to clear all chats?')) {
+                localStorage.removeItem('nutri_chats');
                 currentChatId = Date.now().toString(); currentChatMessages = [];
                 renderHistoryList(); renderCurrentChat();
+            }
+        }
+
+        // ميزة الحذف الفردي للمحادثة (Delete Single Chat)
+        function deleteSingleChat(id, event) {
+            event.stopPropagation(); // لمنع فتح المحادثة أثناء محاولة مسحها
+            if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح هذه المحادثة؟' : 'Are you sure you want to delete this chat?')) {
+                let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
+                delete chats[id];
+                localStorage.setItem('nutri_chats', JSON.stringify(chats));
+                
+                if(currentChatId === id) { // إذا مسح المحادثة المفتوحة حالياً
+                    currentChatId = Date.now().toString();
+                    currentChatMessages = [];
+                    renderCurrentChat();
+                }
+                renderHistoryList();
             }
         }
 
@@ -573,7 +583,6 @@
             if (currentChatMessages.length === 0) return;
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             
-            // تعيين عنوان ذكي فقط إذا لم يكن للمحادثة عنوان مسبق
             let title = chats[currentChatId]?.title;
             if (!title) {
                 title = generateSmartTitle(currentChatMessages[0].content);
@@ -587,13 +596,15 @@
             const list = document.getElementById('historyList'); list.innerHTML = '';
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             Object.keys(chats).reverse().forEach(id => {
-                let div = document.createElement('div'); div.className = 'history-item'; 
-                // إظهار العنوان الذكي بدلاً من التواريخ المزعجة
-                div.innerHTML = `<i data-lucide="message-square"></i> <span>${chats[id].title}</span>`;
-                div.onclick = () => { 
-                    loadChat(id); 
-                    if(window.innerWidth <= 768) toggleSidebar(); 
-                };
+                let div = document.createElement('div'); div.className = 'history-item-wrapper'; 
+                div.innerHTML = `
+                    <button class="history-item" onclick="loadChat('${id}'); if(window.innerWidth <= 768) toggleSidebar();">
+                        <i data-lucide="message-square"></i> <span>${chats[id].title}</span>
+                    </button>
+                    <button class="delete-single-btn" onclick="deleteSingleChat('${id}', event)" title="حذف">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                `;
                 list.appendChild(div);
             });
             lucide.createIcons();

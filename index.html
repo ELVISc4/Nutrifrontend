@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-width=1.0">
     <title>Nutri - AI Advisor</title>
-    <!-- الأيقونة المصغرة -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍏</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         :root {
@@ -96,6 +96,7 @@
         .bot-message { background-color: var(--bot-bg); color: var(--bot-text); border-bottom-right-radius: 4px; margin: 0; flex: 1; }
         html[dir="ltr"] .bot-message { border-bottom-left-radius: 4px; border-bottom-right-radius: 18px; }
         
+        /* تصميم الكلمات المميزة (Highlights) */
         .highlight-text { color: var(--highlight-color); font-weight: 700; display: inline-block;}
         .md-header { color: var(--highlight-color); font-size: 18px; margin: 15px 0 5px 0; font-weight: 700; border-bottom: 1px solid rgba(5, 150, 105, 0.2); display: inline-block; padding-bottom: 3px;}
 
@@ -108,13 +109,13 @@
         .edit-btn { right: 10px; color: #eab308; top: -15px;}
         html[dir="ltr"] .edit-btn { right: auto; left: 10px; }
 
-        /* الطوابع الزمنية (Timestamps) */
+        /* الطوابع الزمنية */
         .timestamp { font-size: 10px; color: var(--sub-text); margin-top: 5px; opacity: 0.8; padding: 0 5px;}
         .user-wrapper .timestamp { align-self: flex-start; }
         html[dir="ltr"] .user-wrapper .timestamp { align-self: flex-end; }
         .bot-wrapper .timestamp { padding-inline-start: 45px; }
 
-        /* الأنميشن الجديد للتحميل (Typing Indicator) */
+        /* الأنميشن الذكي للتحميل */
         .typing-indicator { display: none; align-items: center; gap: 5px; margin-bottom: 20px; padding: 15px 20px; background: var(--bot-bg); border-radius: 18px; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); max-width: fit-content; margin-inline-start: 45px;}
         .dot { width: 8px; height: 8px; background-color: var(--sub-text); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         .dot:nth-child(1) { animation-delay: -0.32s; }
@@ -192,14 +193,13 @@
 
     <div class="chat-container" id="chatContainer">
         <div id="messagesArea"></div>
-        <!-- مؤشر الكتابة الأنيق الجديد -->
         <div class="typing-indicator" id="loadingIndicator">
             <div class="dot"></div><div class="dot"></div><div class="dot"></div>
         </div>
     </div>
 
     <div class="input-area">
-        <button class="action-btn pdf-btn" id="pdfBtn" onclick="exportToPDF()" title="حفظ كمستند PDF">📥 PDF</button>
+        <button class="action-btn pdf-btn" id="pdfBtn" onclick="autoDownloadPDF()" title="حفظ كمستند PDF">📥 PDF</button>
         <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)">
         <button class="action-btn" id="sendBtn" onclick="sendMessage()">إرسال</button>
     </div>
@@ -208,6 +208,7 @@
     <script>
         document.body.setAttribute('data-theme', savedTheme);
         let currentLang = savedLang;
+        let isUserAtBottom = true; 
         
         const uiText = {
             ar: {
@@ -306,7 +307,11 @@
             return html; 
         }
 
-        // محرك الآلة الكاتبة بدون ربط المستخدم بالنزول الإجباري
+        const chatContainerNode = document.getElementById('chatContainer');
+        chatContainerNode.addEventListener('scroll', () => {
+            isUserAtBottom = Math.abs(chatContainerNode.scrollHeight - chatContainerNode.scrollTop - chatContainerNode.clientHeight) < 20;
+        });
+
         function typeWriterHTML(element, htmlStr) {
             let i = 0; element.innerHTML = "";
             function type() {
@@ -316,8 +321,8 @@
                         if (tagEnd !== -1) i = tagEnd;
                     }
                     element.innerHTML = htmlStr.substring(0, i + 1); i++;
-                    // تمت إزالة سطر التمرير الإجباري هنا لترك الحرية الكاملة للمستخدم
-                    setTimeout(type, 10); 
+                    if(isUserAtBottom) chatContainerNode.scrollTo({ top: chatContainerNode.scrollHeight, behavior: 'smooth' });
+                    setTimeout(type, 15); 
                 }
             }
             type();
@@ -439,7 +444,6 @@
                     }
                 }
             });
-            // النزول التلقائي يتم مرة واحدة فقط عند إرسال الرسالة وليس أثناء الكتابة
             if(animateLast === false || currentChatMessages.length > 0) {
                 const container = document.getElementById('chatContainer');
                 container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
@@ -454,13 +458,12 @@
             if (!currentChatId) currentChatId = Date.now().toString();
             const selectedDomain = document.getElementById('domainSelect').value;
             
-            // إضافة وقت الرسالة
             currentChatMessages.push({ role: 'user', content: message, time: getFormattedTime() });
             renderCurrentChat();
             
             inputField.value = '';
             document.getElementById('suggestionsBox').style.display = 'none';
-            document.getElementById('loadingIndicator').style.display = 'flex'; // إظهار النقاط المتحركة
+            document.getElementById('loadingIndicator').style.display = 'flex'; 
 
             let injection = "\n[System: Answer directly and professionally. DO NOT introduce yourself unless explicitly asked. Reply in the same language the user used.]";
 
@@ -474,7 +477,7 @@
                 const data = await response.json();
                 
                 currentChatMessages.push({ role: 'bot', content: data.reply, time: getFormattedTime() });
-                document.getElementById('loadingIndicator').style.display = 'none'; // إخفاء النقاط
+                document.getElementById('loadingIndicator').style.display = 'none'; 
                 renderCurrentChat(true); 
                 saveChatToLocal(); 
             } catch (error) {
@@ -485,69 +488,80 @@
         }
         function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(false); }
 
-        /* --- محرك الـ PDF الثوري (New Tab Document Method) --- */
-        function exportToPDF() {
+        /* --- محرك الـ PDF الآلي المتخفي --- */
+        function autoDownloadPDF() {
             if (currentChatMessages.length === 0) return;
-            
-            // فتح نافذة جديدة فارغة
-            const printWindow = window.open('', '_blank');
-            
-            // بناء مستند HTML نظيف ومستقل تماماً للطباعة
+
+            // بناء صندوق مخفي نظيف في الصفحة لغرض التقاطه فقط
+            const hiddenContainer = document.createElement('div');
+            hiddenContainer.id = 'pdf-hidden-container';
+            hiddenContainer.style.width = '800px';
+            hiddenContainer.style.padding = '30px';
+            hiddenContainer.style.backgroundColor = '#ffffff';
+            hiddenContainer.style.position = 'absolute';
+            hiddenContainer.style.left = '-9999px';
+            hiddenContainer.style.top = '-9999px';
+            hiddenContainer.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+
+            // ترويسة الـ PDF
             let htmlContent = `
-            <!DOCTYPE html>
-            <html dir="${currentLang === 'ar' ? 'rtl' : 'ltr'}" lang="${currentLang}">
-            <head>
-                <title>Nutri Consultation - ${new Date().toLocaleDateString()}</title>
-                <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
                 <style>
-                    body { font-family: 'Cairo', sans-serif; padding: 40px; color: #000; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.8;}
-                    .header { text-align: center; border-bottom: 2px solid #166534; padding-bottom: 10px; margin-bottom: 30px; }
-                    .header h2 { color: #166534; margin: 0; font-size: 26px;}
-                    .header p { color: #666; margin: 5px 0 0 0; font-size: 14px;}
-                    .msg-block { margin-bottom: 25px; page-break-inside: avoid; }
-                    .role-user { font-weight: bold; color: #166534; font-size: 16px; margin-bottom: 5px;}
-                    .role-bot { font-weight: bold; color: #0f172a; font-size: 16px; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;}
-                    .text-content { padding: 10px 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 15px;}
-                    .bot-content { background: #ffffff; border-color: #166534; border-right: 4px solid #166534; }
-                    html[dir="ltr"] .bot-content { border-right: 1px solid #166534; border-left: 4px solid #166534; }
-                    .highlight-text { color: #059669; font-weight: bold; }
-                    .md-header { color: #059669; font-weight: bold; font-size: 18px; margin-top: 10px; margin-bottom: 5px;}
-                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #eee; padding-top: 15px; }
+                    .pdf-highlight { color: #059669; font-weight: bold; }
+                    .pdf-md-header { color: #059669; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(5, 150, 105, 0.2); margin: 15px 0 5px 0; padding-bottom: 3px; display: inline-block; }
                 </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h2>🍏 Nutri Consultation Report</h2>
-                    <p>${new Date().toLocaleString()}</p>
+                <div style="text-align: center; border-bottom: 2px solid #166534; padding-bottom: 15px; margin-bottom: 30px;">
+                    <h2 style="color: #166534; margin: 0; font-size: 28px; font-family: 'Cairo', sans-serif;">🍏 Nutri Consultation Report</h2>
+                    <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px; font-family: 'Cairo', sans-serif;">${new Date().toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US')}</p>
                 </div>
             `;
-            
-            // حلقة استخراج المحادثة
+
+            // إضافة الرسائل داخل صناديق مستقلة لتجنب القطع
             currentChatMessages.forEach(msg => {
-                if(msg.role === 'user') {
+                if (msg.role === 'user') {
                     let roleName = currentLang === 'ar' ? 'السؤال / الاستفسار:' : 'Question / Inquiry:';
-                    htmlContent += `<div class="msg-block"><div class="role-user">${roleName}</div><div class="text-content">${msg.content}</div></div>`;
+                    htmlContent += `
+                        <div style="page-break-inside: avoid; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 20px; padding: 15px; background-color: #f8fafc; font-family: 'Cairo', sans-serif;">
+                            <div style="font-weight: bold; color: #166534; font-size: 16px; margin-bottom: 8px;">${roleName}</div>
+                            <div style="color: #0f172a; font-size: 15px; line-height: 1.6;">${msg.content}</div>
+                        </div>`;
                 } else {
                     let roleName = currentLang === 'ar' ? '🍏 استشارة نيوتري:' : '🍏 Nutri Advice:';
-                    htmlContent += `<div class="msg-block"><div class="role-bot">${roleName}</div><div class="text-content bot-content">${parseMarkdown(msg.content)}</div></div>`;
+                    // استبدال كلاسات الويب بكلاسات الـ PDF الداخلية
+                    let safeContent = parseMarkdown(msg.content)
+                        .replace(/class="highlight-text"/g, 'class="pdf-highlight"')
+                        .replace(/class="md-header"/g, 'class="pdf-md-header"');
+                    
+                    htmlContent += `
+                        <div style="page-break-inside: avoid; border: 2px solid #166534; border-radius: 8px; margin-bottom: 20px; padding: 15px; background-color: #ffffff; font-family: 'Cairo', sans-serif;">
+                            <div style="font-weight: bold; color: #0f172a; font-size: 16px; margin-bottom: 8px;">${roleName}</div>
+                            <div style="color: #0f172a; font-size: 15px; line-height: 1.7;">${safeContent}</div>
+                        </div>`;
                 }
             });
 
+            // تذييل الـ PDF
             htmlContent += `
-                <div class="footer">
-                    <strong>Food Logic AI</strong><br>
+                <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #eee; padding-top: 15px; font-family: 'Cairo', sans-serif;">
+                    <strong>Nutri AI Advisor</strong><br>
                     Designed & Developed by Hazem El Helw
                 </div>
-            </body>
-            <script>
-                // ننتظر قليلاً لتحميل الخطوط ثم نفتح نافذة الطباعة
-                window.onload = function() { setTimeout(function(){ window.print(); }, 500); }
-            <\/script>
-            </html>`;
+            `;
 
-            printWindow.document.open();
-            printWindow.document.write(htmlContent);
-            printWindow.document.close();
+            hiddenContainer.innerHTML = htmlContent;
+            document.body.appendChild(hiddenContainer);
+
+            const opt = {
+                margin:       [10, 10, 10, 10], 
+                filename:     'Nutri_Consultation.pdf',
+                image:        { type: 'jpeg', quality: 1 }, 
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // إنشاء وتحميل الملف ثم تنظيف الكود المخفي
+            html2pdf().set(opt).from(hiddenContainer).save().then(() => {
+                document.body.removeChild(hiddenContainer);
+            });
         }
 
         updateUI(); rotateSuggestions(); renderHistoryList();

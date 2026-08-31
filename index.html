@@ -356,6 +356,14 @@
             document.getElementById('sendText').textContent = uiText[currentLang].sendBtn;
             document.getElementById('disclaimerText').textContent = uiText[currentLang].disclaimer;
             
+            // تحديث قائمة الاستشارات مع الاحتفاظ بالخيار الحالي (إن وجد)
+            const domainSelect = document.getElementById('domainSelect');
+            const selectedIndex = domainSelect.selectedIndex;
+            initDomains();
+            if (selectedIndex > 0 && selectedIndex < domainSelect.options.length) {
+                domainSelect.selectedIndex = selectedIndex;
+            }
+
             const isLight = document.body.getAttribute('data-theme') === 'light';
             document.getElementById('themeBtn').innerHTML = isLight ? `<i data-lucide="moon"></i> ${uiText[currentLang].themeDark}` : `<i data-lucide="sun"></i> ${uiText[currentLang].themeLight}`;
             try { lucide.createIcons(); } catch(e){}
@@ -402,7 +410,7 @@
                     alert(currentLang === 'ar' ? 'تم رفض صلاحية المايك. يرجى تفعيلها من إعدادات المتصفح.' : 'Mic permission denied.');
                 }
             };
-        } // <--- هذا القوس هو ما كان ينقصك وشل الواجهة!
+        } 
 
         function toggleVoiceRecord() {
             if(!recognition) return;
@@ -467,8 +475,18 @@
             return new Date().toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }); 
         }
 
+        // خوارزمية Fisher-Yates لضمان عشوائية حقيقية وعدم تكرار نفس الترتيب
+        function getRandomSuggestions() {
+            let pool = [...suggestionsPool[currentLang]]; 
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]]; 
+            }
+            return pool.slice(0, 3);
+        }
+
         function renderEmptyState() {
-            let shuffled = suggestionsPool[currentLang].sort(() => 0.5 - Math.random()).slice(0, 3);
+            let shuffled = getRandomSuggestions();
             let cardsHtml = `
             <div class="suggestion-card primary-card" onclick="sendDynamicTip()" style="animation-delay: 0.1s">
                 <i data-lucide="sparkles"></i> <span>${uiText[currentLang].healthTip}</span>
@@ -595,7 +613,7 @@
             saveChatToLocal(); 
 
             try {
-               const response = await fetch('https://backend-1-2.vercel.app/api/chat', {
+                const response = await fetch('https://backend-1-2.vercel.app/api/chat', {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_message: finalMessage, domain: selectedDomain, history: chatHistory })
@@ -611,11 +629,8 @@
 
             } catch (error) {
                 document.getElementById('loadingIndicator').style.display = 'none'; 
-                
-                // تم تعديل رسالة الخطأ هنا لتكون منطقية أكثر للوضع الحالي المرفوع
                 currentChatMessages.push({ role: 'bot', content: "عذراً، حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى.", time: getFormattedTime() });
                 renderCurrentChat(true, false);
-                
                 currentChatMessages.pop();
             }
         }
@@ -660,7 +675,17 @@
         function startNewChat() {
             currentChatId = Date.now().toString(); currentChatMessages = [];
             renderCurrentChat(false, true); 
-            if(window.innerWidth <= 768) toggleSidebar(); 
+            
+            // إصلاح مشكلة ظهور القائمة الجانبية في الموبايل تلقائياً
+            const sidebar = document.getElementById('sidebar');
+            if(window.innerWidth <= 768 && sidebar.classList.contains('open')) { 
+                toggleSidebar(); 
+            }
+            
+            // تحسين تجربة المستخدم: تنشيط مربع النص تلقائياً على الديسكتوب فقط
+            if(window.innerWidth > 768) {
+                document.getElementById('userInput').focus();
+            }
         }
 
         function saveChatToLocal() {

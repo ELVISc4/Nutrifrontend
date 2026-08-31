@@ -595,11 +595,11 @@
 
             try {
                 // الاتصال بـالباك اند المحلي
-                const response = await fetch('backend-1-2-oglx51o7m-nutri-mind1.vercel.app', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_message: finalMessage, domain: selectedDomain, history: chatHistory })
-                });
-
+             const response = await fetch('https://backend-1-2-oglx51o7m-nutri-mind1.vercel.app/api/chat', {
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_message: finalMessage, domain: selectedDomain, history: chatHistory })
+});
                 if (!response.ok) throw new Error('Network Error');
                 const data = await response.json();
                 

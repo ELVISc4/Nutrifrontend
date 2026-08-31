@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- استدعاء مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -60,16 +61,14 @@
 
         body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; transition: background 0.4s, color 0.4s; overflow-x: hidden;}
 
-        /* --- شاشة تسجيل الدخول المحدثة --- */
+        /* --- شاشة تسجيل الدخول --- */
         #auth-screen { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: linear-gradient(135deg, #f8fafc 0%, #dcf8c6 100%); 
             z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; 
             transition: 0.4s;
         }
-        [data-theme="dark"] #auth-screen {
-            background: linear-gradient(135deg, #0f172a 0%, #064e3b 100%); 
-        }
+        [data-theme="dark"] #auth-screen { background: linear-gradient(135deg, #0f172a 0%, #064e3b 100%); }
         
         .auth-top-controls { position: absolute; top: 20px; left: 20px; display: flex; gap: 10px; }
         html[dir="ltr"] .auth-top-controls { left: auto; right: 20px; }
@@ -82,6 +81,7 @@
         }
         .auth-box h1 { color: var(--text-color); margin-bottom: 10px; font-weight: 800; font-size: 28px;}
         .auth-box p { color: var(--sub-text); margin-bottom: 25px; font-size: 14px;}
+        
         .auth-input { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; box-sizing: border-box; outline: none; transition: 0.3s;}
         .auth-input:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 3px var(--focus-glow);}
         
@@ -91,12 +91,7 @@
         .auth-btn.outline { background: transparent; color: var(--text-color); border: 2px solid #166534; }
         .auth-btn.outline:hover { background: rgba(22, 101, 52, 0.1); }
         
-        .guest-btn { 
-            width: 100%; padding: 15px; background: transparent; 
-            color: var(--text-color); border: 2px solid var(--highlight-color); 
-            border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: 700; 
-            font-size: 14px; cursor: pointer; transition: 0.3s;
-        }
+        .guest-btn { width: 100%; padding: 15px; background: transparent; color: var(--text-color); border: 2px solid var(--highlight-color); border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.3s; }
         .guest-btn:hover { background: rgba(5, 150, 105, 0.1); transform: translateY(-2px);}
 
         #auth-message { margin-top: 15px; font-size: 13px; font-weight: bold; display: none;}
@@ -107,7 +102,7 @@
 
         .lucide { width: 18px; height: 18px; stroke-width: 2.2; }
 
-        .top-controls { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: row; gap: 8px; z-index: 10; direction: ltr !important; background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 8px; border-radius: 12px; border: 1px solid var(--btn-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .top-controls { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: row; gap: 8px; z-index: 10; direction: ltr !important; background: var(--glass-bg); backdrop-filter: blur(12px); padding: 8px; border-radius: 12px; border: 1px solid var(--btn-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
         .control-btn { padding: 6px 12px; background: transparent; color: var(--text-color); border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-family: 'Cairo', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;}
         .control-btn:hover { background: rgba(150,150,150,0.1); transform: translateY(-1px); }
         .delete-btn { color: #ef4444 !important; }
@@ -143,7 +138,6 @@
         .delete-single-btn { background: none; border: none; color: var(--sub-text); cursor: pointer; padding: 6px; border-radius: 6px; transition: 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4; }
         .history-item-wrapper:hover .delete-single-btn { opacity: 1; }
         .delete-single-btn:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); opacity: 1;}
-        .delete-single-btn .lucide { width: 14px; height: 14px; }
         
         .sidebar-footer { margin-top: 15px; border-top: 1px solid var(--btn-border); padding-top: 15px; text-align: center; font-size: 12px; color: var(--sub-text); line-height: 1.6; margin-inline: 5px; flex-shrink: 0;}
         .sidebar-footer a { color: var(--highlight-color); text-decoration: none; font-weight: bold; }
@@ -152,41 +146,37 @@
         .header h1 { margin: 0; font-size: 24px; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 800;}
 
         .domain-selector { text-align: center; margin: 0 auto 10px; width: 90%; max-width: 400px; z-index: 5; }
-        select { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(5px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 14px; outline: none; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        select { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(5px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 14px; outline: none; cursor: pointer; transition: 0.3s;}
         select:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 3px var(--focus-glow); }
 
         .chat-container { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 20px 40px; max-width: 850px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; scroll-behavior: smooth; }
         
         .apple-float { font-size: 90px; margin-bottom: 5px; display: inline-block; animation: floatApple 4s ease-in-out infinite; filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); }
-        @keyframes floatApple { 0%, 100% { transform: translateY(0px); filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); } 50% { transform: translateY(-15px); filter: drop-shadow(0 25px 15px rgba(22, 101, 52, 0.15)); } }
+        @keyframes floatApple { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
 
         .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; animation: fadeIn 0.6s ease-out; }
         .empty-state h2 { color: var(--text-color); margin-bottom: 5px; font-weight: 800; font-size: 28px;}
         .empty-state p { color: var(--sub-text); margin-top: 0; margin-bottom: 35px; font-size: 15px;}
         .suggestions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%; max-width: 650px; }
         
-        .suggestion-card { background: var(--sugg-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--btn-border); color: var(--text-color); padding: 16px; border-radius: 14px; font-size: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: start; box-shadow: 0 2px 6px rgba(0,0,0,0.02); line-height: 1.6; opacity: 0; animation: slideUpFade 0.5s ease forwards; display: flex; align-items: flex-start; gap: 10px;}
+        .suggestion-card { background: var(--sugg-bg); backdrop-filter: blur(8px); border: 1px solid var(--btn-border); color: var(--text-color); padding: 16px; border-radius: 14px; font-size: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: start; box-shadow: 0 2px 6px rgba(0,0,0,0.02); line-height: 1.6; opacity: 0; animation: slideUpFade 0.5s ease forwards; display: flex; align-items: flex-start; gap: 10px;}
         .suggestion-card .lucide { flex-shrink: 0; margin-top: 2px; color: var(--highlight-color);}
         .suggestion-card:hover { background: var(--btn-bg); transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-color: var(--highlight-color);}
-        
-        .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), transparent); border: 1px solid var(--highlight-color); font-weight: 700; color: var(--highlight-color); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);}
+        .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), transparent); border: 1px solid var(--highlight-color); font-weight: 700; color: var(--highlight-color);}
         [data-theme="dark"] .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), transparent); }
 
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
         .message-wrapper { display: flex; flex-direction: column; position: relative; margin-bottom: 30px; animation: slideUpFade 0.4s ease-out forwards; width: 100%; }
         .user-wrapper { align-items: flex-start; }
         html[dir="ltr"] .user-wrapper { align-items: flex-end; }
-        
         .bot-wrapper-content { display: flex; align-items: flex-end; gap: 12px; justify-content: flex-start; width: 100%; }
         html[dir="ltr"] .bot-wrapper-content { flex-direction: row; }
 
-        .message { padding: 16px 22px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); line-height: 1.75; max-width: 85%; unicode-bidi: plaintext; text-align: start; position: relative; font-size: 15px;}
-        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
-
+        .message { padding: 16px 22px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); line-height: 1.75; max-width: 85%; unicode-bidi: plaintext; text-align: start; font-size: 15px;}
         .user-message { background-color: var(--user-bg); color: var(--user-text); border-bottom-right-radius: 6px; }
         html[dir="ltr"] .user-message { border-bottom-right-radius: 20px; border-bottom-left-radius: 6px; }
-        
         .bot-avatar { font-size: 26px; margin-bottom: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));}
         .bot-message { background: var(--bot-bg); backdrop-filter: blur(10px); color: var(--bot-text); border-bottom-right-radius: 6px; margin: 0; flex: 1; border: 1px solid var(--btn-border); }
         html[dir="ltr"] .bot-message { border-bottom-left-radius: 6px; border-bottom-right-radius: 20px; }
@@ -194,71 +184,50 @@
         .highlight-text { color: var(--highlight-color); font-weight: 800; display: inline-block;}
         .md-header { color: var(--highlight-color); font-size: 18px; margin: 18px 0 8px 0; font-weight: 800; border-bottom: 2px solid rgba(5, 150, 105, 0.15); display: inline-block; padding-bottom: 4px;}
 
-        .mini-btn { position: absolute; top: -16px; background: var(--glass-bg); backdrop-filter: blur(5px); border: 1px solid var(--btn-border); color: var(--icon-color); border-radius: 8px; padding: 6px; cursor: pointer; opacity: 0; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center;}
-        .mini-btn .lucide { width: 14px; height: 14px; }
+        .mini-btn { position: absolute; top: -16px; background: var(--glass-bg); backdrop-filter: blur(5px); border: 1px solid var(--btn-border); color: var(--icon-color); border-radius: 8px; padding: 6px; cursor: pointer; opacity: 0; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
         .bot-wrapper-content:hover .mini-btn, .message-wrapper:hover .mini-btn { opacity: 1; }
         .mini-btn:hover { background: #166534; border-color: #166534; color: white;}
-        .mini-btn:hover .lucide { stroke: white; }
-        
-        .copy-btn { left: 15px; }
-        html[dir="ltr"] .copy-btn { left: auto; right: 15px; }
-        .edit-btn { right: 15px; top: -16px;}
-        html[dir="ltr"] .edit-btn { right: auto; left: 15px; }
+        .copy-btn { left: 15px; } html[dir="ltr"] .copy-btn { left: auto; right: 15px; }
+        .edit-btn { right: 15px; top: -16px;} html[dir="ltr"] .edit-btn { right: auto; left: 15px; }
 
         .timestamp { font-size: 11px; color: var(--sub-text); margin-top: 6px; opacity: 0.7; padding: 0 8px; font-weight: 600;}
-        .user-wrapper .timestamp { align-self: flex-start; }
-        html[dir="ltr"] .user-wrapper .timestamp { align-self: flex-end; }
+        .user-wrapper .timestamp { align-self: flex-start; } html[dir="ltr"] .user-wrapper .timestamp { align-self: flex-end; }
         .bot-wrapper .timestamp { padding-inline-start: 50px; }
 
         .typing-indicator { display: none; align-items: center; gap: 6px; margin-bottom: 20px; padding: 15px 22px; background: var(--bot-bg); border-radius: 20px; border-bottom-right-radius: 6px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); max-width: fit-content; margin-inline-start: 48px; border: 1px solid var(--btn-border);}
         .dot { width: 8px; height: 8px; background-color: var(--highlight-color); border-radius: 50%; animation: pulse 1.4s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(1) { animation-delay: -0.32s; } .dot:nth-child(2) { animation-delay: -0.16s; }
         @keyframes pulse { 0%, 80%, 100% { transform: scale(0.4); opacity: 0.5;} 40% { transform: scale(1); opacity: 1;} }
 
         .scroll-bottom-btn { position: absolute; bottom: 100px; right: 30px; background: var(--highlight-color); color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; box-shadow: 0 6px 15px rgba(5, 150, 105, 0.3); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100;}
         .scroll-bottom-btn.visible { opacity: 1; pointer-events: auto; }
-        .scroll-bottom-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);}
+        .scroll-bottom-btn:hover { transform: translateY(-3px);}
         html[dir="ltr"] .scroll-bottom-btn { right: auto; left: 30px; }
 
         .inline-edit-area { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-        .inline-edit-area textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--highlight-color); font-family: 'Cairo', sans-serif; background: var(--bot-bg); color: var(--text-color); box-sizing: border-box; resize: vertical; min-height: 90px; box-shadow: 0 0 0 3px var(--focus-glow); outline: none;}
+        .inline-edit-area textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--highlight-color); font-family: 'Cairo', sans-serif; background: var(--bot-bg); color: var(--text-color); box-sizing: border-box; resize: vertical; min-height: 90px; outline: none;}
         .inline-edit-controls { display: flex; gap: 10px; justify-content: flex-end; }
         .inline-btn { padding: 6px 18px; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; border: none; font-size: 13px; transition: 0.2s;}
         .inline-save { background: var(--highlight-color); color: white; }
-        .inline-save:hover { background: #047857; }
         .inline-cancel { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;}
-        .inline-cancel:hover { background: #e2e8f0; color: #0f172a;}
-        [data-theme="dark"] .inline-cancel { background: #1e293b; color: #cbd5e1; border-color: #334155;}
-        [data-theme="dark"] .inline-cancel:hover { background: #334155; color: #f8fafc;}
 
         .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px calc(15px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; display: flex; gap: 12px; align-items: center; z-index: 5; background: transparent; }
-        
         input[type="text"] { flex: 1; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(10px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
         input[type="text"]:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 4px var(--focus-glow), 0 4px 15px rgba(0,0,0,0.02); transform: translateY(-1px);}
-        
         button.action-btn { padding: 0 24px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none; flex-shrink: 0;}
         button.action-btn.active { opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.2);}
-        button.action-btn.active:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22, 101, 52, 0.3);}
-        @keyframes buttonPulse { 0% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(22, 101, 52, 0); } 100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0); } }
-        button.action-btn.active { animation: buttonPulse 2s infinite; }
-
+        button.action-btn.active:hover { background: #14532d; transform: translateY(-2px);}
+        
         .mic-btn { padding: 0; width: 56px; height: 56px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
         .mic-btn:hover { background: rgba(150,150,150,0.1); transform: translateY(-2px);}
-        .mic-btn.recording { background: #ef4444; color: white; border-color: #ef4444; animation: pulseMic 1.5s infinite; }
-        @keyframes pulseMic { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-
+        .mic-btn.recording { background: #ef4444; color: white; border-color: #ef4444; }
+        
         button.pdf-btn { background: #ef4444; padding: 0; width: 56px; opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); animation: none; flex-shrink: 0;}
-        button.pdf-btn:hover { background: #dc2626; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.25); transform: translateY(-2px);}
+        button.pdf-btn:hover { background: #dc2626; transform: translateY(-2px);}
         
         .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 0 20px calc(15px + env(safe-area-inset-bottom, 0px)); opacity: 0.7; font-style: italic; flex-shrink: 0;}
 
-        #guestCounter {
-            position: absolute; top: 70px; left: 50%; transform: translateX(-50%); 
-            background: var(--highlight-color); color: white; padding: 6px 14px; 
-            border-radius: 12px; font-size: 13px; font-weight: bold; z-index: 10;
-            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2); transition: 0.3s;
-        }
+        #guestCounter { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); background: var(--highlight-color); color: white; padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: bold; z-index: 10; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2); transition: 0.3s; }
 
         @media (max-width: 768px) {
             .input-area { padding: 10px 15px calc(20px + env(safe-area-inset-bottom, 0px)); gap: 8px;} 
@@ -276,42 +245,11 @@
             .apple-float { font-size: 75px; }
             #guestCounter { top: 60px; font-size: 11px; }
         }
-
-        #print-watermark { display: none; }
-        @page { size: A4; margin: 0; }
-        @media print {
-            body { background: white !important; color: black !important; padding: 2cm !important; max-width: 100% !important;}
-            .sidebar, .sidebar-overlay, .top-controls, .input-area, .header, .domain-selector, .empty-state, .disclaimer, .mini-btn, .loading, .scroll-bottom-btn, #guestCounter { display: none !important; }
-            .chat-container { overflow: visible !important; height: auto !important; border: none !important; padding: 0 !important; }
-            .message-wrapper { page-break-inside: avoid !important; margin-bottom: 15px !important; }
-            .message { box-shadow: none !important; border: 1px solid #cbd5e1 !important; color: black !important; background-color: #f8fafc !important;}
-            .bot-message { background-color: #ffffff !important; border: 1px solid #166534 !important; }
-            .highlight-text, .md-header { color: #166534 !important; }
-            .timestamp { display: none !important;}
-        }
     </style>
 </head>
-<script>
-    const savedTheme = localStorage.getItem('nutri_theme') || 'light';
-    const savedLang = localStorage.getItem('nutri_lang') || 'ar';
-    document.documentElement.lang = savedLang;
-    document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
-    
-    // --- تهيئة مكتبة Supabase ---
-    const supabaseUrl = 'https://pvtebagqtykzhtcjodwk.supabase.co';
-    const supabaseKey = 'sb_publishable_-kJ7ZqobsqGIAdGfa469tw_MXl2y6hS';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    let currentUser = null;
-    
-    // --- متغيرات الضيف ---
-    let isGuestUser = false;
-    let guestMessageCount = 0;
-    const MAX_GUEST_MESSAGES = 10;
-</script>
-
 <body data-theme="light">
 
-    <!-- شاشة تسجيل الدخول המحدثة بنظام Email/Password -->
+    <!-- شاشة تسجيل الدخول الموثوقة (Email & Password) -->
     <div id="auth-screen">
         <div class="auth-top-controls">
             <button class="control-btn" id="authThemeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i></button>
@@ -342,7 +280,7 @@
         </div>
     </div>
 
-    <!-- محتوى التطبيق -->
+    <!-- التطبيق الرئيسي -->
     <div id="app-content">
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
@@ -396,11 +334,86 @@
     </div>
 
     <script>
+        // إعدادات اللغة والمظهر
+        const savedTheme = localStorage.getItem('nutri_theme') || 'light';
+        const savedLang = localStorage.getItem('nutri_lang') || 'ar';
+        document.documentElement.lang = savedLang;
+        document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
         document.body.setAttribute('data-theme', savedTheme);
         let currentLang = savedLang;
         let isUserAtBottom = true; 
         
-        // --- نظام المصادقة والمزامنة ونظام الضيف (Email & Password) ---
+        // إعدادات Supabase
+        const supabaseUrl = 'https://pvtebagqtykzhtcjodwk.supabase.co';
+        const supabaseKey = 'sb_publishable_-kJ7ZqobsqGIAdGfa469tw_MXl2y6hS';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        let currentUser = null;
+        let isGuestUser = false;
+        let guestMessageCount = 0;
+        const MAX_GUEST_MESSAGES = 10;
+        let currentChatId = null; 
+        let currentChatMessages = [];
+
+        // بيانات الواجهة والنصوص
+        const uiText = {
+            ar: {
+                themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة",
+                welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...",
+                inputPlaceholder: "تحدث أو اكتب استشارتك الغذائية...", sendBtn: "إرسال", 
+                support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
+                disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء",
+                healthTip: "نصيحة صحية سريعة",
+                authTitle: "مرحباً بك في Nutri", authSubtitle: "سجل دخولك أو جرب كمستخدم ضيف.", 
+                emailPlaceholder: "أدخل بريدك الإلكتروني...", passwordPlaceholder: "أدخل كلمة المرور...",
+                authLoginBtn: "تسجيل الدخول", authSignupBtn: "إنشاء حساب",
+                guestBtn: "متابعة كضيف (10 رسائل)", supportContact: "للتواصل والدعم:",
+                guestLimitAlert: "لقد استنفدت رسائلك المجانية. يرجى تسجيل الدخول لحفظ بياناتك ومتابعة المحادثة.", micGuestAlert: "ميزة الإدخال الصوتي متاحة للمستخدمين المسجلين فقط."
+            },
+            en: {
+                themeLight: "Light", themeDark: "Dark", langToggle: "AR", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat",
+                welcomeTitle: "How can I assist you today?", domainDefault: "Select Consultation Domain (Optional)...",
+                inputPlaceholder: "Speak or type your dietary advice...", sendBtn: "Send", 
+                support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
+                disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel",
+                healthTip: "Quick Health Tip",
+                authTitle: "Welcome to Nutri", authSubtitle: "Log in or try as a guest.", 
+                emailPlaceholder: "Enter your email...", passwordPlaceholder: "Enter your password...",
+                authLoginBtn: "Log in", authSignupBtn: "Sign Up",
+                guestBtn: "Continue as Guest (10 Messages)", supportContact: "Contact & Support:",
+                guestLimitAlert: "You have exhausted your free messages. Please log in to save your data and continue.", micGuestAlert: "Voice input is available for registered users only."
+            }
+        };
+
+        const domainsData = {
+            ar: ["التغذية البشرية والأنظمة الغذائية", "استشارة عامة في الأغذية", "كيمياء وتحليل الأغذية", "سلامة وصحة الغذاء وتأمين الجودة", "هندسة وتصنيع خطوط الإنتاج", "تطوير المنتجات والابتكار الغذائي", "ميكروبيولوجيا والأحياء الدقيقة للأغذية"],
+            en: ["Human Nutrition & Diets", "General Food Consultation", "Food Chemistry & Analysis", "Food Safety & Quality Assurance", "Engineering & Production Lines", "Product Development & Innovation", "Food Microbiology"]
+        };
+
+        const suggestionsPool = {
+            ar: [
+                {icon: "info", text: "كيف أقرأ البطاقة الغذائية بشكل صحيح؟"}, {icon: "shield-check", text: "أفضل طرق حفظ الأطعمة في الثلاجة؟"}, 
+                {icon: "flame", text: "طريقة صحية لقلي الطعام بأقل ضرر؟"}, {icon: "leaf", text: "بدائل صحية وموفرة للسكر الأبيض؟"}, 
+                {icon: "zap", text: "كيف أرفع طاقتي في الصباح بدون كافيين؟"}, {icon: "droplet", text: "هل شرب الماء وسط الأكل مضر حقاً؟"},
+                {icon: "activity", text: "أفضل وجبة خفيفة قبل وبعد التمرين؟"}, {icon: "alert-triangle", text: "كيف أتأكد من سلامة الدجاج المخزن؟"}, 
+                {icon: "apple", text: "كيف أغسل الخضروات والفواكه بطريقة علمية؟"}, {icon: "heart", text: "أطعمة تساعد على تحسين جودة النوم؟"}
+            ],
+            en: [
+                {icon: "info", text: "How to read Nutrition Facts correctly?"}, {icon: "shield-check", text: "Best ways to store food in the fridge?"}, 
+                {icon: "flame", text: "Healthier ways to fry food?"}, {icon: "leaf", text: "Healthy alternatives to white sugar?"}, 
+                {icon: "zap", text: "How to boost energy without caffeine?"}, {icon: "droplet", text: "Is drinking water during meals bad?"},
+                {icon: "activity", text: "Best pre and post-workout snacks?"}, {icon: "alert-triangle", text: "How to ensure stored chicken is safe?"}, 
+                {icon: "apple", text: "How to scientifically wash vegetables?"}, {icon: "heart", text: "Foods that help improve sleep quality?"}
+            ]
+        };
+
+        function getGreeting() {
+            const hour = new Date().getHours();
+            if (currentLang === 'ar') return hour < 12 ? "صباح الخير" : "مساء الخير";
+            return hour < 12 ? "Good Morning" : (hour < 18 ? "Good Afternoon" : "Good Evening");
+        }
+
+        // --- نظام تسجيل الدخول ---
         async function checkUser() {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
@@ -413,8 +426,7 @@
                 if (counterDiv) counterDiv.remove();
                 
                 const micBtn = document.getElementById('micBtn');
-                micBtn.style.opacity = '1';
-                micBtn.onclick = toggleVoiceRecord;
+                if(micBtn) { micBtn.style.opacity = '1'; micBtn.onclick = toggleVoiceRecord; }
 
                 await syncLocalDataToCloud(); 
                 await fetchChatsFromCloud(); 
@@ -434,7 +446,6 @@
                 msgBox.textContent = currentLang === 'ar' ? 'يرجى إدخال البريد الإلكتروني وكلمة المرور.' : 'Please enter email and password.'; 
                 return; 
             }
-            
             msgBox.style.display = 'block'; msgBox.style.color = 'var(--text-color)'; 
             msgBox.textContent = currentLang === 'ar' ? 'جاري إنشاء الحساب...' : 'Creating account...';
             
@@ -459,7 +470,6 @@
                 msgBox.textContent = currentLang === 'ar' ? 'يرجى إدخال البريد الإلكتروني وكلمة المرور.' : 'Please enter email and password.'; 
                 return; 
             }
-            
             msgBox.style.display = 'block'; msgBox.style.color = 'var(--text-color)'; 
             msgBox.textContent = currentLang === 'ar' ? 'جاري تسجيل الدخول...' : 'Logging in...';
             
@@ -484,8 +494,7 @@
             document.getElementById('app-content').style.display = 'flex';
             
             const micBtn = document.getElementById('micBtn');
-            micBtn.style.opacity = '0.5';
-            micBtn.onclick = () => alert(uiText[currentLang].micGuestAlert);
+            if(micBtn) { micBtn.style.opacity = '0.5'; micBtn.onclick = () => alert(uiText[currentLang].micGuestAlert); }
             
             let localChats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             if (Object.keys(localChats).length > 0) {
@@ -549,65 +558,7 @@
             }
         }
 
-        checkUser();
-
-        function getGreeting() {
-            const hour = new Date().getHours();
-            if (currentLang === 'ar') return hour < 12 ? "صباح الخير" : "مساء الخير";
-            return hour < 12 ? "Good Morning" : (hour < 18 ? "Good Afternoon" : "Good Evening");
-        }
-
-        const uiText = {
-            ar: {
-                themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة",
-                welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...",
-                inputPlaceholder: "تحدث أو اكتب استشارتك الغذائية...", sendBtn: "إرسال", 
-                support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
-                disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء",
-                healthTip: "نصيحة صحية سريعة",
-                authTitle: "مرحباً بك في Nutri", authSubtitle: "سجل دخولك أو جرب كمستخدم ضيف.", 
-                emailPlaceholder: "أدخل بريدك الإلكتروني...", passwordPlaceholder: "أدخل كلمة المرور...",
-                authLoginBtn: "تسجيل الدخول", authSignupBtn: "إنشاء حساب",
-                guestBtn: "متابعة كضيف (10 رسائل)", supportContact: "للتواصل والدعم:",
-                guestLimitAlert: "لقد استنفدت رسائلك المجانية. يرجى تسجيل الدخول لحفظ بياناتك ومتابعة المحادثة.", micGuestAlert: "ميزة الإدخال الصوتي متاحة للمستخدمين المسجلين فقط."
-            },
-            en: {
-                themeLight: "Light", themeDark: "Dark", langToggle: "AR", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat",
-                welcomeTitle: "How can I assist you today?", domainDefault: "Select Consultation Domain (Optional)...",
-                inputPlaceholder: "Speak or type your dietary advice...", sendBtn: "Send", 
-                support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
-                disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel",
-                healthTip: "Quick Health Tip",
-                authTitle: "Welcome to Nutri", authSubtitle: "Log in or try as a guest.", 
-                emailPlaceholder: "Enter your email...", passwordPlaceholder: "Enter your password...",
-                authLoginBtn: "Log in", authSignupBtn: "Sign Up",
-                guestBtn: "Continue as Guest (10 Messages)", supportContact: "Contact & Support:",
-                guestLimitAlert: "You have exhausted your free messages. Please log in to save your data and continue.", micGuestAlert: "Voice input is available for registered users only."
-            }
-        };
-
-        const domainsData = {
-            ar: ["التغذية البشرية والأنظمة الغذائية", "استشارة عامة في الأغذية", "كيمياء وتحليل الأغذية", "سلامة وصحة الغذاء وتأمين الجودة", "هندسة وتصنيع خطوط الإنتاج", "تطوير المنتجات والابتكار الغذائي", "ميكروبيولوجيا والأحياء الدقيقة للأغذية"],
-            en: ["Human Nutrition & Diets", "General Food Consultation", "Food Chemistry & Analysis", "Food Safety & Quality Assurance", "Engineering & Production Lines", "Product Development & Innovation", "Food Microbiology"]
-        };
-
-        const suggestionsPool = {
-            ar: [
-                {icon: "info", text: "كيف أقرأ البطاقة الغذائية بشكل صحيح؟"}, {icon: "shield-check", text: "أفضل طرق حفظ الأطعمة في الثلاجة؟"}, 
-                {icon: "flame", text: "طريقة صحية لقلي الطعام بأقل ضرر؟"}, {icon: "leaf", text: "بدائل صحية وموفرة للسكر الأبيض؟"}, 
-                {icon: "zap", text: "كيف أرفع طاقتي في الصباح بدون كافيين؟"}, {icon: "droplet", text: "هل شرب الماء وسط الأكل مضر حقاً؟"},
-                {icon: "activity", text: "أفضل وجبة خفيفة قبل وبعد التمرين؟"}, {icon: "alert-triangle", text: "كيف أتأكد من سلامة الدجاج المخزن؟"}, 
-                {icon: "apple", text: "كيف أغسل الخضروات والفواكه بطريقة علمية؟"}, {icon: "heart", text: "أطعمة تساعد على تحسين جودة النوم؟"}
-            ],
-            en: [
-                {icon: "info", text: "How to read Nutrition Facts correctly?"}, {icon: "shield-check", text: "Best ways to store food in the fridge?"}, 
-                {icon: "flame", text: "Healthier ways to fry food?"}, {icon: "leaf", text: "Healthy alternatives to white sugar?"}, 
-                {icon: "zap", text: "How to boost energy without caffeine?"}, {icon: "droplet", text: "Is drinking water during meals bad?"},
-                {icon: "activity", text: "Best pre and post-workout snacks?"}, {icon: "alert-triangle", text: "How to ensure stored chicken is safe?"}, 
-                {icon: "apple", text: "How to scientifically wash vegetables?"}, {icon: "heart", text: "Foods that help improve sleep quality?"}
-            ]
-        };
-
+        // --- دوال الواجهة (UI) ---
         function initDomains() {
             const select = document.getElementById('domainSelect');
             select.innerHTML = `<option value="">${uiText[currentLang].domainDefault}</option>`;
@@ -637,8 +588,7 @@
             if(isGuestUser) updateGuestCounterUI();
 
             const isLight = document.body.getAttribute('data-theme') === 'light';
-            const themeContent = isLight ? `<i data-lucide="moon"></i> ${uiText[currentLang].themeDark}` : `<i data-lucide="sun"></i> ${uiText[currentLang].themeLight}`;
-            document.getElementById('themeBtn').innerHTML = themeContent;
+            document.getElementById('themeBtn').innerHTML = isLight ? `<i data-lucide="moon"></i> ${uiText[currentLang].themeDark}` : `<i data-lucide="sun"></i> ${uiText[currentLang].themeLight}`;
             document.getElementById('authThemeBtn').innerHTML = isLight ? `<i data-lucide="moon"></i>` : `<i data-lucide="sun"></i>`;
             
             initDomains(); 
@@ -679,7 +629,8 @@
             recognition.onerror = function() { stopRecording(); };
             recognition.onend = function() { stopRecording(); };
         } else {
-            document.getElementById('micBtn').style.display = 'none';
+            const micBtn = document.getElementById('micBtn');
+            if(micBtn) micBtn.style.display = 'none';
         }
 
         function toggleVoiceRecord() {
@@ -693,7 +644,9 @@
         }
         function stopRecording() {
             if(recognition) recognition.stop();
-            isRecording = false; document.getElementById('micBtn').classList.remove('recording');
+            isRecording = false; 
+            const micBtn = document.getElementById('micBtn');
+            if(micBtn) micBtn.classList.remove('recording');
         }
 
         function renderEmptyState() {
@@ -724,11 +677,6 @@
             const themes = currentLang === 'ar' ? themesAr : themesEn;
             const randomTheme = themes[Math.floor(Math.random() * themes.length)];
             const userMsg = currentLang === 'ar' ? 'نصيحة صحية سريعة...' : 'A quick health tip...';
-            
-            let chatHistory = currentChatMessages.slice(0, -1).slice(-4).map(msg => ({
-                role: msg.role,
-                content: msg.content
-            }));
             
             const hiddenInjection = `\n[System Rule: Give a highly unique, scientific health tip focusing exclusively on: ${randomTheme}. Keep it short, actionable, use formatting, and do not greet.]`;
             document.getElementById('userInput').value = userMsg;
@@ -813,7 +761,7 @@
             document.getElementById(`edit-input-${index}`).focus();
         }
 
-        async function saveInlineEdit(index) {
+        function saveInlineEdit(index) {
             const newText = document.getElementById(`edit-input-${index}`).value.trim();
             if(newText && newText !== currentChatMessages[index].content) {
                 currentChatMessages = currentChatMessages.slice(0, index); 
@@ -829,7 +777,6 @@
             return title || (currentLang === 'ar' ? 'محادثة جديدة' : 'New Chat');
         }
 
-        let currentChatId = null; let currentChatMessages = [];
         function getFormattedTime() { return new Date().toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }); }
 
         function toggleSidebar() { 
@@ -1100,6 +1047,7 @@
         }
 
         updateUI(); 
+        checkUser();
     </script>
 </body>
 </html>

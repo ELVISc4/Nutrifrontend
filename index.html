@@ -396,9 +396,12 @@
                 inputField.value += (inputField.value ? ' ' : '') + transcript;
                 toggleSendButton(); stopRecording();
             };
-            recognition.onerror = function() { stopRecording(); };
-            recognition.onend = function() { stopRecording(); };
-        }
+          recognition.onerror = function(event) { 
+                stopRecording(); 
+                if(event.error === 'not-allowed') {
+                    alert(currentLang === 'ar' ? 'تم رفض صلاحية المايك. يرجى تفعيلها من إعدادات المتصفح.' : 'Mic permission denied.');
+                }
+            };
 
         function toggleVoiceRecord() {
             if(!recognition) return;

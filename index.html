@@ -71,7 +71,6 @@
         #app-content { display: flex; height: 100%; flex-direction: column; width: 100%; }
         .lucide { width: 18px; height: 18px; stroke-width: 2.2; }
 
-        /* Top Controls */
         .top-controls { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: row; gap: 8px; z-index: 10; direction: ltr !important; background: var(--glass-bg); backdrop-filter: blur(12px); padding: 8px; border-radius: 12px; border: 1px solid var(--btn-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
         .control-btn { padding: 6px 12px; background: transparent; color: var(--text-color); border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-family: 'Cairo', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;}
         .control-btn:hover { background: rgba(150,150,150,0.1); transform: translateY(-1px); }
@@ -79,7 +78,6 @@
         .delete-btn .lucide { stroke: #ef4444; }
         html[dir="rtl"] .control-btn { direction: rtl; }
 
-        /* Sidebar & History */
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
         .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
         .sidebar { position: fixed; top: 0; right: 0; left: auto; width: 320px; height: 100vh; height: 100dvh; background: var(--sidebar-bg); backdrop-filter: blur(20px); box-shadow: -5px 0 25px rgba(0,0,0,0.08); transform: translateX(110%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px 15px 30px; box-sizing: border-box; border-left: 1px solid var(--btn-border);}
@@ -96,7 +94,6 @@
         .new-chat-btn { width: calc(100% - 10px); margin: 0 5px 15px; padding: 12px; background: #166534; color: white; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;}
         .new-chat-btn:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(22, 101, 52, 0.3);}
         
-        /* Advanced History Features */
         .history-search-input { width: calc(100% - 10px); margin: 0 5px 15px; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--glass-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 13px; outline: none; box-sizing: border-box; transition: 0.3s;}
         .history-search-input:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 3px var(--focus-glow); }
         
@@ -120,7 +117,6 @@
         .sidebar-footer { margin-top: 15px; border-top: 1px solid var(--btn-border); padding-top: 15px; text-align: center; font-size: 12px; color: var(--sub-text); line-height: 1.6; margin-inline: 5px; flex-shrink: 0;}
         .sidebar-footer a { color: var(--highlight-color); text-decoration: none; font-weight: bold; }
 
-        /* Main Chat Area */
         .header { text-align: center; padding: 25px 20px 5px; z-index: 5; }
         .header h1 { margin: 0; font-size: 24px; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 800;}
         .domain-selector { text-align: center; margin: 0 auto 10px; width: 90%; max-width: 400px; z-index: 5; }
@@ -160,7 +156,6 @@
         .bot-message { background: var(--bot-bg); backdrop-filter: blur(10px); color: var(--bot-text); border-bottom-right-radius: 6px; margin: 0; flex: 1; border: 1px solid var(--btn-border); overflow-x: auto;}
         html[dir="ltr"] .bot-message { border-bottom-left-radius: 6px; border-bottom-right-radius: 20px; }
         
-        /* Advanced Markdown Styling for Marked.js Output */
         .message h1, .message h2, .message h3 { color: var(--highlight-color); margin: 15px 0 10px; font-weight: 800; border-bottom: 2px solid rgba(5, 150, 105, 0.15); padding-bottom: 5px;}
         .message h1 { font-size: 22px; } .message h2 { font-size: 20px; } .message h3 { font-size: 18px; }
         .message strong { color: var(--highlight-color); font-weight: 800; }
@@ -263,7 +258,6 @@
             
             <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()"><i data-lucide="plus"></i> <span id="newChatText">محادثة جديدة</span></button>
             
-            <!-- شريط البحث في السجل -->
             <input type="text" id="searchHistory" class="history-search-input" placeholder="ابحث في الاستشارات..." onkeyup="filterHistory()">
             
             <div class="history-list" id="historyList"></div>
@@ -309,13 +303,18 @@
     </div>
 
     <script>
-        // إعدادات مكتبة Marked.js لدعم الجداول وتنسيقات الباحثين
+        // إعداد البصمة المجهولة للجهاز
+        let deviceId = localStorage.getItem('nutri_device_id');
+        if (!deviceId) {
+            deviceId = crypto.randomUUID();
+            localStorage.setItem('nutri_device_id', deviceId);
+        }
+
         marked.setOptions({ breaks: true, gfm: true });
 
-        // تسجيل الـ Service Worker (أساسيات تطبيق PWA)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration skipped/failed in local.'));
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration skipped in local.'));
             });
         }
 
@@ -526,9 +525,8 @@
                 msgArea.innerHTML = '';
                 currentChatMessages.forEach((msg, index) => {
                     let timeStr = msg.time || ""; 
-                    // استخدام Marked.js للترجمة القوية
                     let rawHTML = marked.parse(msg.content);
-let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPurify.sanitize(msg.content);
+                    let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPurify.sanitize(msg.content);
                     
                     if (msg.role === 'user') {
                         msgArea.innerHTML += `
@@ -563,12 +561,12 @@ let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPur
             if (lastMsg.role === 'user') {
                 msgArea.insertAdjacentHTML('beforeend', `
                     <div class="message-wrapper user-wrapper">
-                        <div class="message user-message" id="msg-text-${lastIndex}" dir="auto">${lastMsg.content}</div>
+                        <div class="message user-message" id="msg-text-${lastIndex}" dir="auto">${DOMPurify.sanitize(lastMsg.content)}</div>
                         <button class="mini-btn edit-btn" onclick="editMessageInline(${lastIndex})" title="${uiText[currentLang].editTitle}"><i data-lucide="pencil"></i></button>
                         <div class="timestamp">${timeStr}</div>
                     </div>`);
             } else {
-                let formattedContent = marked.parse(lastMsg.content);
+                let formattedContent = DOMPurify.sanitize(marked.parse(lastMsg.content));
                 msgArea.insertAdjacentHTML('beforeend', `
                     <div class="message-wrapper bot-wrapper">
                         <div class="bot-wrapper-content">
@@ -605,14 +603,22 @@ let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPur
 
             const selectedDomain = document.getElementById('domainSelect').value;
             let finalMessage = message + (specialInjection ? specialInjection : "");
-            let chatHistory = currentChatMessages.slice(0, -1).slice(-4).map(msg => ({ role: msg.role, content: msg.content }));
+            
+            // نرسل السجل كاملاً للباك إند لكي يحفظه في Supabase
+            let fullChatHistory = currentChatMessages.slice(0, -1).map(msg => ({ role: msg.role, content: msg.content, time: msg.time }));
             
             saveChatToLocal(); 
 
             try {
                 const response = await fetch('https://backend-1-2.vercel.app/api/chat', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_message: finalMessage, domain: selectedDomain, history: chatHistory })
+                    body: JSON.stringify({ 
+                        user_message: finalMessage, 
+                        domain: selectedDomain, 
+                        history: fullChatHistory,
+                        device_id: deviceId,
+                        chat_id: currentChatId
+                    })
                 });
                 
                 if (!response.ok) throw new Error('Network Error');
@@ -681,7 +687,6 @@ let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPur
             renderHistoryList();
         }
 
-        // --- أدوات إدارة السجل المتقدمة ---
         function filterHistory() {
             let term = document.getElementById('searchHistory').value.toLowerCase();
             let items = document.querySelectorAll('.history-item-wrapper');
@@ -712,7 +717,6 @@ let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPur
             const list = document.getElementById('historyList'); list.innerHTML = '';
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             
-            // فصل المحادثات المثبتة عن العادية وترتيبهم
             let chatArray = Object.keys(chats).map(id => ({id: id, ...chats[id]}));
             let pinned = chatArray.filter(c => c.pinned).sort((a,b) => b.id - a.id);
             let unpinned = chatArray.filter(c => !c.pinned).sort((a,b) => b.id - a.id);
@@ -740,7 +744,7 @@ let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPur
                 list.appendChild(div);
             });
             try { lucide.createIcons(); } catch(e){}
-            filterHistory(); // إعادة تطبيق فلتر البحث إن وجد
+            filterHistory(); 
         }
 
         function loadChat(id) {
@@ -799,11 +803,10 @@ let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPur
             currentChatMessages.forEach(msg => {
                 if(msg.role === 'user') {
                     let roleName = isAr ? 'السؤال / الاستفسار:' : 'Question / Inquiry:';
-                    htmlContent += `<div class="msg-block"><div class="role-user">${roleName}</div><div class="text-content">${msg.content}</div></div>`;
+                    htmlContent += `<div class="msg-block"><div class="role-user">${roleName}</div><div class="text-content">${DOMPurify.sanitize(msg.content)}</div></div>`;
                 } else {
                     let roleName = isAr ? '🍏 استشارة نيوتري:' : '🍏 Nutri Advice:';
-                    // تمريرها على parseMarkdown القديم فقط في الـ PDF لتجنب تعقيد أكواد HTML داخل الـ PDF
-                    htmlContent += `<div class="msg-block"><div class="role-bot">${roleName}</div><div class="text-content bot-content">${marked.parse(msg.content)}</div></div>`;
+                    htmlContent += `<div class="msg-block"><div class="role-bot">${roleName}</div><div class="text-content bot-content">${DOMPurify.sanitize(marked.parse(msg.content))}</div></div>`;
                 }
             });
             htmlContent += `<div class="footer"><strong>Nutri AI Advisor</strong><br>Designed & Developed by Hazem El Helw</div></body>

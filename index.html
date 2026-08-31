@@ -8,8 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- استدعاء مكتبة Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root {
@@ -60,18 +58,6 @@
         ::-webkit-scrollbar-thumb:hover { background: rgba(150,150,150,0.6); }
 
         body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; transition: background 0.4s, color 0.4s; overflow-x: hidden;}
-
-        /* --- شاشة تسجيل الدخول --- */
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-gradient); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .auth-box { background: var(--glass-bg); padding: 40px; border-radius: 20px; border: 1px solid var(--btn-border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; }
-        .auth-box h1 { color: var(--text-color); margin-bottom: 10px; font-weight: 800; font-size: 28px;}
-        .auth-box p { color: var(--sub-text); margin-bottom: 25px; font-size: 14px;}
-        .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; box-sizing: border-box; outline: none; transition: 0.3s;}
-        .auth-input:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 3px var(--focus-glow);}
-        .auth-btn { width: 100%; padding: 15px; background: #166534; color: white; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s;}
-        .auth-btn:hover { background: #14532d; transform: translateY(-2px);}
-        #auth-message { margin-top: 15px; font-size: 13px; color: var(--highlight-color); display: none;}
-        #app-content { display: none; height: 100%; flex-direction: column; } /* إخفاء التطبيق حتى الدخول */
 
         .lucide { width: 18px; height: 18px; stroke-width: 2.2; }
 
@@ -266,157 +252,63 @@
     const savedLang = localStorage.getItem('nutri_lang') || 'ar';
     document.documentElement.lang = savedLang;
     document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
-    
-    // --- تهيئة مكتبة Supabase ---
-    // تم وضع المفاتيح هنا مباشرة لتعمل فوراً.
-    const supabaseUrl = 'https://pvtebagqtykzhtcjodwk.supabase.co';
-    const supabaseKey = 'sb_publishable_-kJ7ZqobsqGIAdGfa469tw_MXl2y6hS';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    let currentUser = null;
 </script>
-
 <body data-theme="light">
 
-    <!-- شاشة تسجيل الدخول الأنيقة -->
-    <div id="auth-screen">
-        <div class="auth-box">
-            <div class="apple-float" style="font-size: 60px; margin-bottom: 15px;">🍏</div>
-            <h1>مرحباً بك في Nutri</h1>
-            <p>سجل دخولك للوصول إلى مستشارك الغذائي الذكي وحفظ محادثاتك.</p>
-            <input type="email" id="emailInput" class="auth-input" placeholder="أدخل بريدك الإلكتروني...">
-            <button class="auth-btn" onclick="signInWithEmail()">تسجيل الدخول / إنشاء حساب</button>
-            <div id="auth-message"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3 id="historyTitle" style="margin:0; font-size: 18px; font-weight: 800;">سجل المحادثات</h3>
+            <button class="close-sidebar" onclick="toggleSidebar()"><i data-lucide="x"></i></button>
+        </div>
+        <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()"><i data-lucide="plus"></i> <span id="newChatText">محادثة جديدة</span></button>
+        <div class="history-list" id="historyList"></div>
+        
+        <div class="sidebar-footer">
+            <div id="supportText">للتواصل والدعم:</div>
+            <a href="mailto:hazemelhelw2020@gmail.com">hazemelhelw2020@gmail.com</a>
+            <div style="margin-top: 10px; opacity: 0.8;" id="creditText">Designed & Developed by<br>Hazem El Helw</div>
         </div>
     </div>
 
-    <!-- محتوى التطبيق (مخفي حتى تسجيل الدخول) -->
-    <div id="app-content">
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3 id="historyTitle" style="margin:0; font-size: 18px; font-weight: 800;">سجل المحادثات</h3>
-                <button class="close-sidebar" onclick="toggleSidebar()"><i data-lucide="x"></i></button>
-            </div>
-            <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()"><i data-lucide="plus"></i> <span id="newChatText">محادثة جديدة</span></button>
-            <div class="history-list" id="historyList"></div>
-            
-            <div class="sidebar-footer">
-                <div id="supportText">للتواصل والدعم:</div>
-                <a href="mailto:hazemelhelw2020@gmail.com">hazemelhelw2020@gmail.com</a>
-                <div style="margin-top: 10px; opacity: 0.8;" id="creditText">Designed & Developed by<br>Hazem El Helw</div>
-                <button onclick="signOut()" style="margin-top: 15px; padding: 5px 10px; background: none; border: 1px solid #ef4444; color: #ef4444; border-radius: 5px; cursor: pointer; font-family: 'Cairo';">تسجيل الخروج</button>
-            </div>
-        </div>
-
-        <div class="top-controls">
-            <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
-            <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
-            <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
-            <button class="control-btn delete-btn" id="clearBtn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
-        </div>
-
-        <div class="header">
-            <h1><span class="apple-icon">🍏</span> Nutri - AI Advisor</h1>
-        </div>
-
-        <div class="domain-selector">
-            <select id="domainSelect"></select>
-        </div>
-
-        <button class="scroll-bottom-btn" id="scrollBtn" onclick="scrollToBottomManual()"><i data-lucide="arrow-down"></i></button>
-
-        <div class="chat-container" id="chatContainer" onscroll="handleScroll()">
-            <div id="messagesArea"></div>
-            <div class="typing-indicator" id="loadingIndicator">
-                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-            </div>
-        </div>
-
-        <div class="input-area">
-            <button class="action-btn pdf-btn" id="pdfBtn" onclick="exportToPDF()" title="حفظ كمستند PDF"><i data-lucide="download"></i></button>
-            <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecord()" title="إدخال صوتي"><i data-lucide="mic"></i></button>
-            <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)" oninput="toggleSendButton()">
-            <button class="action-btn" id="sendBtn" onclick="sendMessage()"><i data-lucide="send"></i> <span id="sendText">إرسال</span></button>
-        </div>
-        <div class="disclaimer" id="disclaimerText">Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.</div>
+    <div class="top-controls">
+        <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
+        <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
+        <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
+        <button class="control-btn delete-btn" id="clearBtn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
     </div>
+
+    <div class="header">
+        <h1><span class="apple-icon">🍏</span> Nutri - AI Advisor</h1>
+    </div>
+
+    <div class="domain-selector">
+        <select id="domainSelect"></select>
+    </div>
+
+    <button class="scroll-bottom-btn" id="scrollBtn" onclick="scrollToBottomManual()"><i data-lucide="arrow-down"></i></button>
+
+    <div class="chat-container" id="chatContainer" onscroll="handleScroll()">
+        <div id="messagesArea"></div>
+        <div class="typing-indicator" id="loadingIndicator">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <button class="action-btn pdf-btn" id="pdfBtn" onclick="exportToPDF()" title="حفظ كمستند PDF"><i data-lucide="download"></i></button>
+        <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecord()" title="إدخال صوتي"><i data-lucide="mic"></i></button>
+        <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)" oninput="toggleSendButton()">
+        <button class="action-btn" id="sendBtn" onclick="sendMessage()"><i data-lucide="send"></i> <span id="sendText">إرسال</span></button>
+    </div>
+    <div class="disclaimer" id="disclaimerText">Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.</div>
 
     <script>
         document.body.setAttribute('data-theme', savedTheme);
         let currentLang = savedLang;
         let isUserAtBottom = true; 
         
-        // --- نظام المصادقة والمزامنة السحابية (Supabase Auth & Sync) ---
-        async function checkUser() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'flex';
-                // لم نعد نقرأ من الذاكرة المحلية، سنقرأ من السحابة مباشرة!
-                await fetchChatsFromCloud(); 
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('app-content').style.display = 'none';
-            }
-        }
-
-        async function signInWithEmail() {
-            const email = document.getElementById('emailInput').value;
-            const msgBox = document.getElementById('auth-message');
-            if(!email) { msgBox.style.display = 'block'; msgBox.textContent = 'يرجى إدخال بريد إلكتروني صحيح.'; return; }
-            
-            msgBox.style.display = 'block'; msgBox.style.color = 'var(--text-color)'; msgBox.textContent = 'جاري إرسال رابط الدخول...';
-            
-            const { data, error } = await supabase.auth.signInWithOtp({
-                email: email,
-                options: { emailRedirectTo: window.location.href }
-            });
-            
-            if(error) {
-                msgBox.style.color = '#ef4444'; msgBox.textContent = error.message;
-            } else {
-                msgBox.style.color = 'var(--highlight-color)'; msgBox.textContent = 'تم إرسال رابط الدخول! تفقد بريدك الإلكتروني واضغط على الرابط السحري للبدء.';
-            }
-        }
-
-        async function signOut() {
-            await supabase.auth.signOut();
-            window.location.reload();
-        }
-
-        // دالة خطيرة لجلب المحادثات من السحابة وعرضها
-        async function fetchChatsFromCloud() {
-            if(!currentUser) return;
-            const { data, error } = await supabase.from('chats').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true });
-            
-            if(data) {
-                let cloudChats = {};
-                data.forEach(chat => {
-                    cloudChats[chat.id] = { title: chat.title, messages: chat.messages };
-                });
-                // نحفظها محلياً مؤقتاً لتسهيل التعامل معها برمجياً
-                localStorage.setItem('nutri_chats', JSON.stringify(cloudChats));
-                
-                // إذا لم يكن هناك محادثات، نفتح محادثة جديدة
-                if(data.length === 0) {
-                    startNewChat();
-                } else {
-                    // نفتح آخر محادثة كوضع افتراضي
-                    const lastChat = data[data.length - 1];
-                    currentChatId = lastChat.id;
-                    currentChatMessages = lastChat.messages;
-                    renderHistoryList();
-                    renderCurrentChat(false, true);
-                    scrollToBottomManual();
-                }
-            }
-        }
-
-        // تشغيل التحقق من المستخدم عند فتح الصفحة
-        checkUser();
-
         function getGreeting() {
             const hour = new Date().getHours();
             if (currentLang === 'ar') return hour < 12 ? "صباح الخير" : "مساء الخير";
@@ -485,6 +377,7 @@
             document.getElementById('themeBtn').innerHTML = isLight ? `<i data-lucide="moon"></i> ${uiText[currentLang].themeDark}` : `<i data-lucide="sun"></i> ${uiText[currentLang].themeLight}`;
             
             initDomains(); 
+            // استخدام true للحفاظ على الواجهة بدون إعادة رسم
             renderCurrentChat(false, true); 
             lucide.createIcons();
         }
@@ -656,13 +549,12 @@
             document.getElementById(`edit-input-${index}`).focus();
         }
 
-        // --- المزامنة العكسية بعد التعديل (Sync after Edit) ---
-        async function saveInlineEdit(index) {
+        function saveInlineEdit(index) {
             const newText = document.getElementById(`edit-input-${index}`).value.trim();
             if(newText && newText !== currentChatMessages[index].content) {
                 currentChatMessages = currentChatMessages.slice(0, index); 
                 sendMessage(true, newText); 
-            } else { renderCurrentChat(false, true); } 
+            } else { renderCurrentChat(false, true); } // تحديث بدون إعادة رسم الشاشة بالكامل
         }
 
         function generateSmartTitle(firstMessage) {
@@ -687,20 +579,17 @@
             if(window.innerWidth <= 768) toggleSidebar(); 
         }
 
-        // --- حذف المحادثات من السحابة ---
-        async function clearAllChats() {
+        function clearAllChats() {
             if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح كافة المحادثات؟' : 'Are you sure you want to clear all chats?')) {
-                if(currentUser) { await supabase.from('chats').delete().eq('user_id', currentUser.id); }
                 localStorage.removeItem('nutri_chats');
                 currentChatId = Date.now().toString(); currentChatMessages = [];
                 renderHistoryList(); renderCurrentChat();
             }
         }
 
-        async function deleteSingleChat(id, event) {
+        function deleteSingleChat(id, event) {
             event.stopPropagation(); 
             if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح هذه المحادثة؟' : 'Are you sure you want to delete this chat?')) {
-                if(currentUser) { await supabase.from('chats').delete().eq('id', id); }
                 let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
                 delete chats[id];
                 localStorage.setItem('nutri_chats', JSON.stringify(chats));
@@ -709,25 +598,13 @@
             }
         }
 
-        // دالة حفظ المحادثة المعدلة لترفعها للسحابة بضمان الـ ID
-        async function saveChatToLocal() {
-            if (currentChatMessages.length === 0 || !currentUser) return;
+        function saveChatToLocal() {
+            if (currentChatMessages.length === 0) return;
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             let title = chats[currentChatId]?.title;
             if (!title) { title = generateSmartTitle(currentChatMessages[0].content); }
-            
             chats[currentChatId] = { title: title, messages: currentChatMessages, date: new Date().toLocaleDateString() };
-            localStorage.setItem('nutri_chats', JSON.stringify(chats)); 
-            
-            // حقن الـ user_id مع البيانات المرفوعة
-            await supabase.from('chats').upsert({
-                id: currentChatId,
-                title: title,
-                messages: currentChatMessages,
-                user_id: currentUser.id
-            });
-            
-            renderHistoryList();
+            localStorage.setItem('nutri_chats', JSON.stringify(chats)); renderHistoryList();
         }
 
         function renderHistoryList() {
@@ -752,20 +629,25 @@
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             if (chats[id]) {
                 currentChatId = id; currentChatMessages = chats[id].messages;
+                // عند تحميل محادثة قديمة، نرسمها بدون أنيمشن
                 renderCurrentChat(false, true); 
                 setTimeout(scrollToBottomManual, 100);
             }
         }
 
+        // --- الضربة القاضية لمشكلة الريفرش ---
+        // أضفت متغير isSoftUpdate لكي يضيف الرسالة الجديدة فقط بدلاً من إعادة مسح الشاشة
         function renderCurrentChat(animateLast = false, isSoftUpdate = false) {
             const msgArea = document.getElementById('messagesArea');
             
+            // إذا كانت المحادثة فارغة، نرسم شاشة الترحيب
             if (currentChatMessages.length === 0) {
                 msgArea.innerHTML = renderEmptyState(); 
                 lucide.createIcons(); 
                 return;
             }
 
+            // إذا كان التحديث "ناعم" (Soft Update)، سنمسح الشاشة ونعيد رسمها بدون أنيمشن
             if (isSoftUpdate) {
                 msgArea.innerHTML = '';
                 currentChatMessages.forEach((msg, index) => {
@@ -794,10 +676,12 @@
                 return;
             }
 
+            // في حالة إرسال رسالة جديدة، نضيف آخر رسالة فقط بدلاً من رسم كل شيء
             const lastIndex = currentChatMessages.length - 1;
             const lastMsg = currentChatMessages[lastIndex];
             const timeStr = lastMsg.time || "";
 
+            // إزالة شاشة الترحيب إذا كانت موجودة
             const emptyState = msgArea.querySelector('.empty-state');
             if (emptyState) emptyState.remove();
 
@@ -840,6 +724,7 @@
             
             currentChatMessages.push({ role: 'user', content: message, time: getFormattedTime() });
             
+            // تحديث الواجهة بإضافة الرسالة الأخيرة فقط بدلاً من إعادة مسح كل شيء
             if(isEdit) {
                 renderCurrentChat(false, true);
             } else {
@@ -858,11 +743,7 @@
                 content: msg.content
             }));
 
-            // التأكد من الحفظ المبدئي قبل الاتصال
-            saveChatToLocal(); 
-
             try {
-                // إزالة full_chat من الطلب لأن الواجهة أصبحت مسؤولة عن الحفظ في Supabase مباشرة
                 const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -877,11 +758,8 @@
                 
                 currentChatMessages.push({ role: 'bot', content: data.reply, time: getFormattedTime() });
                 document.getElementById('loadingIndicator').style.display = 'none'; 
-                renderCurrentChat(true, false); 
-                
-                // حفظ المحادثة بعد إضافة الرد ورفعها للسحابة
+                renderCurrentChat(true, false); // إضافة الرد الجديد فقط
                 saveChatToLocal(); 
-                
             } catch (error) {
                 currentChatMessages.push({ role: 'bot', content: "Error connecting to the server.", time: getFormattedTime() });
                 document.getElementById('loadingIndicator').style.display = 'none'; 
@@ -938,7 +816,7 @@
             printWindow.document.open(); printWindow.document.write(htmlContent); printWindow.document.close();
         }
 
-        updateUI(); 
+        updateUI(); renderHistoryList();
     </script>
 </body>
 </html>

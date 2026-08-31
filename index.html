@@ -270,6 +270,8 @@
         </div>
 
         <div class="top-controls">
+            <!-- الزر الجديد لتثبيت التطبيق (PWA) مخفي افتراضياً -->
+            <button class="control-btn" id="installAppBtn" style="display: none; color: var(--highlight-color); border-color: var(--highlight-color); background: rgba(5, 150, 105, 0.1);"><i data-lucide="download-cloud"></i> <span id="installText">تثبيت التطبيق</span></button>
             <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
             <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
             <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
@@ -333,8 +335,8 @@
         };
 
         const uiText = {
-            ar: { welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", inputPlaceholder: "تحدث أو اكتب استشارتك الغذائية...", sendBtn: "إرسال", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة", searchHist: "ابحث في الاستشارات...", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...", themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء", healthTip: "نصيحة صحية سريعة" },
-            en: { welcomeTitle: "How can I assist you today?", inputPlaceholder: "Speak or type your dietary advice...", sendBtn: "Send", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat", searchHist: "Search in consultations...", domainDefault: "Select Consultation Domain (Optional)...", themeLight: "Light", themeDark: "Dark", langToggle: "AR", disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel", healthTip: "Quick Health Tip" }
+            ar: { welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", inputPlaceholder: "تحدث أو اكتب استشارتك الغذائية...", sendBtn: "إرسال", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة", searchHist: "ابحث في الاستشارات...", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...", themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء", healthTip: "نصيحة صحية سريعة", installApp: "تثبيت التطبيق" },
+            en: { welcomeTitle: "How can I assist you today?", inputPlaceholder: "Speak or type your dietary advice...", sendBtn: "Send", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat", searchHist: "Search in consultations...", domainDefault: "Select Consultation Domain (Optional)...", themeLight: "Light", themeDark: "Dark", langToggle: "AR", disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel", healthTip: "Quick Health Tip", installApp: "Install App" }
         };
 
         const suggestionsPool = {
@@ -368,6 +370,9 @@
             document.getElementById('userInput').placeholder = uiText[currentLang].inputPlaceholder;
             document.getElementById('sendText').textContent = uiText[currentLang].sendBtn;
             document.getElementById('disclaimerText').textContent = uiText[currentLang].disclaimer;
+            
+            // تحديث نص زر التثبيت بناءً على اللغة
+            if(document.getElementById('installText')) document.getElementById('installText').textContent = uiText[currentLang].installApp;
             
             const domainSelect = document.getElementById('domainSelect');
             const selectedIndex = domainSelect.selectedIndex;
@@ -604,7 +609,6 @@
             const selectedDomain = document.getElementById('domainSelect').value;
             let finalMessage = message + (specialInjection ? specialInjection : "");
             
-            // نرسل السجل كاملاً للباك إند لكي يحفظه في Supabase
             let fullChatHistory = currentChatMessages.slice(0, -1).map(msg => ({ role: msg.role, content: msg.content, time: msg.time }));
             
             saveChatToLocal(); 
@@ -812,6 +816,32 @@
             htmlContent += `<div class="footer"><strong>Nutri AI Advisor</strong><br>Designed & Developed by Hazem El Helw</div></body>
             <script> window.onload = function() { setTimeout(function(){ window.print(); }, 500); } <\/script></html>`;
             printWindow.document.open(); printWindow.document.write(htmlContent); printWindow.document.close();
+        }
+
+        // --- PWA Installation Control ---
+        let deferredPrompt;
+        const installAppBtn = document.getElementById('installAppBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // منع المتصفح من إظهار الإشعار التلقائي المزعج
+            e.preventDefault();
+            // حفظ الحدث للتحكم فيه يدوياً
+            deferredPrompt = e;
+            // إظهار زر التثبيت الخاص بنا في الواجهة
+            if (installAppBtn) installAppBtn.style.display = 'flex';
+        });
+
+        if (installAppBtn) {
+            installAppBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installAppBtn.style.display = 'none'; // إخفاء الزر بعد نجاح التثبيت
+                    }
+                    deferredPrompt = null;
+                }
+            });
         }
     </script>
 </body>

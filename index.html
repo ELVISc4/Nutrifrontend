@@ -526,7 +526,8 @@
                 currentChatMessages.forEach((msg, index) => {
                     let timeStr = msg.time || ""; 
                     // استخدام Marked.js للترجمة القوية
-                    let formattedContent = msg.role === 'bot' ? marked.parse(msg.content) : msg.content;
+                    let rawHTML = marked.parse(msg.content);
+let formattedContent = msg.role === 'bot' ? DOMPurify.sanitize(rawHTML) : DOMPurify.sanitize(msg.content);
                     
                     if (msg.role === 'user') {
                         msgArea.innerHTML += `

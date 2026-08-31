@@ -102,7 +102,8 @@
         
         .sidebar-footer { margin-top: 15px; border-top: 1px solid var(--btn-border); padding-top: 15px; text-align: center; font-size: 12px; color: var(--sub-text); line-height: 1.6; margin-inline: 5px; flex-shrink: 0;}
         .sidebar-footer a { color: var(--highlight-color); text-decoration: none; font-weight: bold; }
-        .logout-btn { display: none; width: 100%; margin-top: 15px; padding: 5px; border: 1px solid #ef4444; color: #ef4444; background: transparent; border-radius: 5px; font-family: 'Cairo'; cursor: pointer; }
+        .logout-btn { display: none; width: 100%; margin-top: 15px; padding: 5px; border: 1px solid #ef4444; color: #ef4444; background: transparent; border-radius: 5px; font-family: 'Cairo'; cursor: pointer; transition: 0.2s;}
+        .logout-btn:hover { background: rgba(239, 68, 68, 0.1); }
 
         .header { text-align: center; padding: 25px 20px 5px; z-index: 5; }
         .header h1 { margin: 0; font-size: 24px; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 800;}
@@ -110,6 +111,9 @@
         .domain-selector { text-align: center; margin: 0 auto 10px; width: 90%; max-width: 400px; z-index: 5; }
         select { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(5px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 14px; outline: none; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
         select:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 3px var(--focus-glow); }
+
+        /* الإصلاح الجذري: تحويل display إلى flex لتظهر الواجهة دائماً */
+        #app-content { display: flex; height: 100%; flex-direction: column; } 
 
         .chat-container { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 20px 40px; max-width: 850px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; scroll-behavior: smooth; }
         
@@ -241,55 +245,58 @@
 </head>
 <body data-theme="light">
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <!-- التطبيق الرئيسي -->
+    <div id="app-content">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3 id="historyTitle" style="margin:0; font-size: 18px; font-weight: 800;">سجل المحادثات</h3>
-            <button class="close-sidebar" onclick="toggleSidebar()"><i data-lucide="x"></i></button>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3 id="historyTitle" style="margin:0; font-size: 18px; font-weight: 800;">سجل المحادثات</h3>
+                <button class="close-sidebar" onclick="toggleSidebar()"><i data-lucide="x"></i></button>
+            </div>
+            <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()"><i data-lucide="plus"></i> <span id="newChatText">محادثة جديدة</span></button>
+            <div class="history-list" id="historyList"></div>
+            
+            <div class="sidebar-footer">
+                <div id="supportText">للتواصل والدعم:</div>
+                <a href="mailto:hazemelhelw2020@gmail.com">hazemelhelw2020@gmail.com</a>
+                <div style="margin-top: 10px; opacity: 0.8;" id="creditText">Designed & Developed by<br>Hazem El Helw</div>
+                <button class="logout-btn" id="logoutBtn" onclick="signOut()">تسجيل الخروج</button>
+            </div>
         </div>
-        <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()"><i data-lucide="plus"></i> <span id="newChatText">محادثة جديدة</span></button>
-        <div class="history-list" id="historyList"></div>
-        
-        <div class="sidebar-footer">
-            <div id="supportText">للتواصل والدعم:</div>
-            <a href="mailto:hazemelhelw2020@gmail.com">hazemelhelw2020@gmail.com</a>
-            <div style="margin-top: 10px; opacity: 0.8;" id="creditText">Designed & Developed by<br>Hazem El Helw</div>
-            <button class="logout-btn" id="logoutBtn" onclick="signOut()">تسجيل الخروج</button>
+
+        <div class="top-controls">
+            <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
+            <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
+            <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
+            <button class="control-btn delete-btn" id="clearBtn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
         </div>
-    </div>
 
-    <div class="top-controls">
-        <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
-        <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
-        <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
-        <button class="control-btn delete-btn" id="clearBtn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
-    </div>
-
-    <div class="header">
-        <h1><span class="apple-icon">🍏</span> Nutri - AI Advisor</h1>
-    </div>
-
-    <div class="domain-selector">
-        <select id="domainSelect"></select>
-    </div>
-
-    <button class="scroll-bottom-btn" id="scrollBtn" onclick="scrollToBottomManual()"><i data-lucide="arrow-down"></i></button>
-
-    <div class="chat-container" id="chatContainer" onscroll="handleScroll()">
-        <div id="messagesArea"></div>
-        <div class="typing-indicator" id="loadingIndicator">
-            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="header">
+            <h1><span class="apple-icon">🍏</span> Nutri - AI Advisor</h1>
         </div>
-    </div>
 
-    <div class="input-area">
-        <button class="action-btn pdf-btn" id="pdfBtn" onclick="exportToPDF()" title="حفظ كمستند PDF"><i data-lucide="download"></i></button>
-        <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecord()" title="إدخال صوتي"><i data-lucide="mic"></i></button>
-        <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)" oninput="toggleSendButton()">
-        <button class="action-btn" id="sendBtn" onclick="sendMessage()"><i data-lucide="send"></i> <span id="sendText">إرسال</span></button>
+        <div class="domain-selector">
+            <select id="domainSelect"></select>
+        </div>
+
+        <button class="scroll-bottom-btn" id="scrollBtn" onclick="scrollToBottomManual()"><i data-lucide="arrow-down"></i></button>
+
+        <div class="chat-container" id="chatContainer" onscroll="handleScroll()">
+            <div id="messagesArea"></div>
+            <div class="typing-indicator" id="loadingIndicator">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <button class="action-btn pdf-btn" id="pdfBtn" onclick="exportToPDF()" title="حفظ كمستند PDF"><i data-lucide="download"></i></button>
+            <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecord()" title="إدخال صوتي"><i data-lucide="mic"></i></button>
+            <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)" oninput="toggleSendButton()">
+            <button class="action-btn" id="sendBtn" onclick="sendMessage()"><i data-lucide="send"></i> <span id="sendText">إرسال</span></button>
+        </div>
+        <div class="disclaimer" id="disclaimerText">Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.</div>
     </div>
-    <div class="disclaimer" id="disclaimerText">Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.</div>
 
     <script>
         // إعدادات السحابة والتوجيه (Auth Logic)
@@ -356,6 +363,7 @@
 
         async function signOut() {
             await supabase.auth.signOut();
+            localStorage.removeItem('nutri_guest');
             window.location.href = 'login.html';
         }
 
@@ -667,8 +675,10 @@
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             let title = chats[currentChatId]?.title;
             if (!title) { title = generateSmartTitle(currentChatMessages[0].content); }
+            
             chats[currentChatId] = { title: title, messages: currentChatMessages, date: new Date().toLocaleDateString() };
             localStorage.setItem('nutri_chats', JSON.stringify(chats)); 
+            
             if(currentUser) {
                 await supabase.from('chats').upsert({
                     id: currentChatId, title: title, messages: currentChatMessages, user_id: currentUser.id
@@ -706,10 +716,13 @@
 
         function renderCurrentChat(animateLast = false, isSoftUpdate = false) {
             const msgArea = document.getElementById('messagesArea');
+            
             if (currentChatMessages.length === 0) {
                 msgArea.innerHTML = renderEmptyState(); 
-                lucide.createIcons(); return;
+                lucide.createIcons(); 
+                return;
             }
+
             if (isSoftUpdate) {
                 msgArea.innerHTML = '';
                 currentChatMessages.forEach((msg, index) => {
@@ -733,7 +746,9 @@
                             </div>`;
                     }
                 });
-                lucide.createIcons(); scrollToBottomManual(); return;
+                lucide.createIcons();
+                scrollToBottomManual();
+                return;
             }
 
             const lastIndex = currentChatMessages.length - 1;
@@ -759,13 +774,16 @@
                         </div>
                         <div class="timestamp">${timeStr}</div>
                     </div>`);
+                
                 if(animateLast) {
                     setTimeout(() => { typeWriterHTML(document.getElementById(`msg-text-${lastIndex}`), parseMarkdown(lastMsg.content)); }, 50);
                 } else {
                     document.getElementById(`msg-text-${lastIndex}`).innerHTML = parseMarkdown(lastMsg.content);
                 }
             }
-            lucide.createIcons(); if(animateLast === false) { scrollToBottomManual(); }
+            
+            lucide.createIcons();
+            if(animateLast === false) { scrollToBottomManual(); }
         }
 
         async function sendMessage(isEdit = false, editText = "", specialInjection = null) {
@@ -791,6 +809,7 @@
             
             if(isEdit) { renderCurrentChat(false, true); } 
             else { renderCurrentChat(false, false); }
+            
             scrollToBottomManual();
             inputField.value = ''; toggleSendButton(); 
             document.getElementById('loadingIndicator').style.display = 'flex'; 

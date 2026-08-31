@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root {
@@ -21,8 +22,10 @@
             --bot-bg: #ffffff;
             --bot-text: #111b21;
             --sugg-bg: rgba(255, 255, 255, 0.8);
+            --sugg-hover: #f1f5f9;
             --sidebar-bg: rgba(255, 255, 255, 0.95);
             --glass-bg: rgba(255, 255, 255, 0.7);
+            --sidebar-shadow: 5px 0 25px rgba(0,0,0,0.08);
             --highlight-color: #059669;
             --focus-glow: rgba(5, 150, 105, 0.15);
             --icon-color: #475569;
@@ -40,8 +43,10 @@
             --bot-bg: rgba(30, 41, 59, 0.7);
             --bot-text: #e9edef;
             --sugg-bg: rgba(30, 41, 59, 0.6);
+            --sugg-hover: rgba(15, 23, 42, 0.8);
             --sidebar-bg: rgba(15, 23, 42, 0.95);
             --glass-bg: rgba(15, 23, 42, 0.7);
+            --sidebar-shadow: 5px 0 25px rgba(0,0,0,0.6);
             --highlight-color: #34d399;
             --focus-glow: rgba(52, 211, 153, 0.15);
             --icon-color: #94a3b8;
@@ -53,109 +58,197 @@
         ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.3); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(150,150,150,0.6); }
 
-        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; overflow-x: hidden;}
+        body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; transition: background 0.4s, color 0.4s; overflow-x: hidden;}
+
+        /* إظهار الواجهة الرئيسية بشكل دائم (التعديل الجذري) */
+        #app-content { display: flex; height: 100%; flex-direction: column; width: 100%; }
 
         .lucide { width: 18px; height: 18px; stroke-width: 2.2; }
 
-        .top-controls { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: row; gap: 8px; z-index: 10; direction: ltr !important; background: var(--glass-bg); backdrop-filter: blur(12px); padding: 8px; border-radius: 12px; border: 1px solid var(--btn-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .top-controls { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: row; gap: 8px; z-index: 10; direction: ltr !important; background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 8px; border-radius: 12px; border: 1px solid var(--btn-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
         .control-btn { padding: 6px 12px; background: transparent; color: var(--text-color); border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-family: 'Cairo', sans-serif; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;}
         .control-btn:hover { background: rgba(150,150,150,0.1); transform: translateY(-1px); }
         .delete-btn { color: #ef4444 !important; }
         .delete-btn .lucide { stroke: #ef4444; }
         html[dir="rtl"] .control-btn { direction: rtl; }
 
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
         .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
-        .sidebar { position: fixed; top: 0; right: 0; left: auto; width: 280px; height: 100vh; background: var(--sidebar-bg); backdrop-filter: blur(20px); box-shadow: -5px 0 25px rgba(0,0,0,0.08); transform: translateX(110%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px 15px 30px; box-sizing: border-box; border-left: 1px solid var(--btn-border);}
+        .sidebar { position: fixed; top: 0; right: 0; left: auto; width: 280px; height: 100vh; height: 100dvh; background: var(--sidebar-bg); backdrop-filter: blur(20px); box-shadow: -5px 0 25px rgba(0,0,0,0.08); transform: translateX(110%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; padding: 20px 15px 30px; box-sizing: border-box; border-left: 1px solid var(--btn-border);}
         [data-theme="dark"] .sidebar { box-shadow: -5px 0 25px rgba(0,0,0,0.6); }
         .sidebar.open { transform: translateX(0); }
-        html[dir="ltr"] .sidebar { right: auto; left: 0; transform: translateX(-110%); border-left: none; border-right: 1px solid var(--btn-border);}
+
+        html[dir="ltr"] .sidebar { right: auto; left: 0; transform: translateX(-110%); box-shadow: 5px 0 25px rgba(0,0,0,0.08); border-left: none; border-right: 1px solid var(--btn-border);}
+        html[dir="ltr"][data-theme="dark"] .sidebar { box-shadow: 5px 0 25px rgba(0,0,0,0.6); }
         html[dir="ltr"] .sidebar.open { transform: translateX(0); }
 
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--btn-border); padding-bottom: 15px; padding-inline: 5px; flex-shrink: 0;}
         .close-sidebar { background: none; border: none; color: var(--text-color); cursor: pointer; transition: 0.2s; display: flex; align-items: center;}
         .close-sidebar:hover { transform: scale(1.1); color: #ef4444;}
         
-        .new-chat-btn { width: calc(100% - 10px); margin: 0 5px 20px; padding: 12px; background: #166534; color: white; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;}
-        .new-chat-btn:hover { background: #14532d; transform: translateY(-2px);}
+        .new-chat-btn { width: calc(100% - 10px); margin: 0 5px 20px; padding: 12px; background: #166534; color: white; border: none; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;}
+        .new-chat-btn:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(22, 101, 52, 0.3);}
         
-        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;}
-        .history-item-wrapper { display: flex; align-items: center; justify-content: space-between; border-radius: 10px; padding: 4px; }
+        .history-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 5px; padding-left: 5px;}
+        
+        .history-item-wrapper { display: flex; align-items: center; justify-content: space-between; background: transparent; border-radius: 10px; transition: all 0.2s ease; padding: 4px; }
         .history-item-wrapper:hover { background: var(--hover-item); }
-        .history-item { flex: 1; padding: 8px 6px; border: none; background: transparent; cursor: pointer; font-size: 14px; text-align: start; color: var(--text-color); display: flex; align-items: center; gap: 10px; font-weight: 600;}
-        .delete-single-btn { background: none; border: none; color: var(--sub-text); cursor: pointer; padding: 6px; border-radius: 6px; opacity: 0.4; }
+        .history-item { flex: 1; padding: 8px 6px; border: none; background: transparent; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; color: var(--text-color); display: flex; align-items: center; gap: 10px; font-weight: 600;}
+        .history-item .lucide { width: 16px; height: 16px; color: var(--sub-text); flex-shrink: 0; transition: 0.2s;}
+        .history-item-wrapper:hover .history-item .lucide { color: var(--highlight-color); }
+        
+        .delete-single-btn { background: none; border: none; color: var(--sub-text); cursor: pointer; padding: 6px; border-radius: 6px; transition: 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.4; }
         .history-item-wrapper:hover .delete-single-btn { opacity: 1; }
         .delete-single-btn:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); opacity: 1;}
+        .delete-single-btn .lucide { width: 14px; height: 14px; }
         
-        .sidebar-footer { margin-top: 15px; border-top: 1px solid var(--btn-border); padding-top: 15px; text-align: center; font-size: 12px; color: var(--sub-text); line-height: 1.6;}
+        .sidebar-footer { margin-top: 15px; border-top: 1px solid var(--btn-border); padding-top: 15px; text-align: center; font-size: 12px; color: var(--sub-text); line-height: 1.6; margin-inline: 5px; flex-shrink: 0;}
         .sidebar-footer a { color: var(--highlight-color); text-decoration: none; font-weight: bold; }
-
-        /* الشاشة البيضاء انتهت: تم تحديد العرض بشكل سليم لتظهر الواجهة دائماً */
-        #app-content { display: flex; height: 100%; flex-direction: column; width: 100%; } 
+        .logout-btn { display: none; width: 100%; margin-top: 15px; padding: 8px; border: 1px solid #ef4444; color: #ef4444; background: transparent; border-radius: 8px; font-family: 'Cairo'; font-weight: bold; cursor: pointer; transition: 0.2s;}
+        .logout-btn:hover { background: rgba(239, 68, 68, 0.1); }
 
         .header { text-align: center; padding: 25px 20px 5px; z-index: 5; }
         .header h1 { margin: 0; font-size: 24px; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 800;}
 
         .domain-selector { text-align: center; margin: 0 auto 10px; width: 90%; max-width: 400px; z-index: 5; }
-        select { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--glass-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 14px; outline: none; cursor: pointer;}
-        select:focus { border-color: var(--highlight-color); }
+        select { width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(5px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 14px; outline: none; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        select:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 3px var(--focus-glow); }
 
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px 20px 40px; max-width: 850px; margin: 0 auto; width: 100%; position: relative; scroll-behavior: smooth; }
+        .chat-container { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 20px 40px; max-width: 850px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; scroll-behavior: smooth; }
         
-        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
+        .apple-float { font-size: 90px; margin-bottom: 5px; display: inline-block; animation: floatApple 4s ease-in-out infinite; filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); }
+        @keyframes floatApple { 0%, 100% { transform: translateY(0px); filter: drop-shadow(0 15px 15px rgba(22, 101, 52, 0.25)); } 50% { transform: translateY(-15px); filter: drop-shadow(0 25px 15px rgba(22, 101, 52, 0.15)); } }
+
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; animation: fadeIn 0.6s ease-out; }
         .empty-state h2 { color: var(--text-color); margin-bottom: 5px; font-weight: 800; font-size: 28px;}
         .empty-state p { color: var(--sub-text); margin-top: 0; margin-bottom: 35px; font-size: 15px;}
         .suggestions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%; max-width: 650px; }
-        .suggestion-card { background: var(--sugg-bg); border: 1px solid var(--btn-border); color: var(--text-color); padding: 16px; border-radius: 14px; font-size: 14px; cursor: pointer; display: flex; align-items: flex-start; gap: 10px; transition: 0.3s;}
-        .suggestion-card:hover { transform: translateY(-4px); border-color: var(--highlight-color);}
         
-        .message-wrapper { display: flex; flex-direction: column; position: relative; margin-bottom: 30px; width: 100%; }
-        .user-wrapper { align-items: flex-start; } html[dir="ltr"] .user-wrapper { align-items: flex-end; }
+        .suggestion-card { background: var(--sugg-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--btn-border); color: var(--text-color); padding: 16px; border-radius: 14px; font-size: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: start; box-shadow: 0 2px 6px rgba(0,0,0,0.02); line-height: 1.6; opacity: 0; animation: slideUpFade 0.5s ease forwards; display: flex; align-items: flex-start; gap: 10px;}
+        .suggestion-card .lucide { flex-shrink: 0; margin-top: 2px; color: var(--highlight-color);}
+        .suggestion-card:hover { background: var(--btn-bg); transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-color: var(--highlight-color);}
+        
+        .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), transparent); border: 1px solid var(--highlight-color); font-weight: 700; color: var(--highlight-color); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);}
+        [data-theme="dark"] .suggestion-card.primary-card { background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), transparent); }
+
+        @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+
+        .message-wrapper { display: flex; flex-direction: column; position: relative; margin-bottom: 30px; animation: slideUpFade 0.4s ease-out forwards; width: 100%; }
+        .user-wrapper { align-items: flex-start; }
+        html[dir="ltr"] .user-wrapper { align-items: flex-end; }
+        
         .bot-wrapper-content { display: flex; align-items: flex-end; gap: 12px; justify-content: flex-start; width: 100%; }
-        
-        .message { padding: 16px 22px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); line-height: 1.75; max-width: 85%; text-align: start; font-size: 15px;}
+        html[dir="ltr"] .bot-wrapper-content { flex-direction: row; }
+
+        .message { padding: 16px 22px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); line-height: 1.75; max-width: 85%; unicode-bidi: plaintext; text-align: start; position: relative; font-size: 15px;}
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
+
         .user-message { background-color: var(--user-bg); color: var(--user-text); border-bottom-right-radius: 6px; }
         html[dir="ltr"] .user-message { border-bottom-right-radius: 20px; border-bottom-left-radius: 6px; }
-        .bot-avatar { font-size: 26px; margin-bottom: 6px;}
-        .bot-message { background: var(--bot-bg); color: var(--bot-text); border-bottom-right-radius: 6px; margin: 0; flex: 1; border: 1px solid var(--btn-border); }
+        
+        .bot-avatar { font-size: 26px; margin-bottom: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));}
+        .bot-message { background: var(--bot-bg); backdrop-filter: blur(10px); color: var(--bot-text); border-bottom-right-radius: 6px; margin: 0; flex: 1; border: 1px solid var(--btn-border); }
         html[dir="ltr"] .bot-message { border-bottom-left-radius: 6px; border-bottom-right-radius: 20px; }
         
+        .highlight-text { color: var(--highlight-color); font-weight: 800; display: inline-block;}
+        .md-header { color: var(--highlight-color); font-size: 18px; margin: 18px 0 8px 0; font-weight: 800; border-bottom: 2px solid rgba(5, 150, 105, 0.15); display: inline-block; padding-bottom: 4px;}
+
+        .mini-btn { position: absolute; top: -16px; background: var(--glass-bg); backdrop-filter: blur(5px); border: 1px solid var(--btn-border); color: var(--icon-color); border-radius: 8px; padding: 6px; cursor: pointer; opacity: 0; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center;}
+        .mini-btn .lucide { width: 14px; height: 14px; }
+        .bot-wrapper-content:hover .mini-btn, .message-wrapper:hover .mini-btn { opacity: 1; }
+        .mini-btn:hover { background: #166534; border-color: #166534; color: white;}
+        .mini-btn:hover .lucide { stroke: white; }
+        
+        .copy-btn { left: 15px; }
+        html[dir="ltr"] .copy-btn { left: auto; right: 15px; }
+        .edit-btn { right: 15px; top: -16px;}
+        html[dir="ltr"] .edit-btn { right: auto; left: 15px; }
+
         .timestamp { font-size: 11px; color: var(--sub-text); margin-top: 6px; opacity: 0.7; padding: 0 8px; font-weight: 600;}
-        .user-wrapper .timestamp { align-self: flex-start; } html[dir="ltr"] .user-wrapper .timestamp { align-self: flex-end; }
+        .user-wrapper .timestamp { align-self: flex-start; }
+        html[dir="ltr"] .user-wrapper .timestamp { align-self: flex-end; }
         .bot-wrapper .timestamp { padding-inline-start: 50px; }
 
-        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px 20px; display: flex; gap: 12px; align-items: center; background: transparent; }
-        input[type="text"] { flex: 1; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--btn-border); background: var(--glass-bg); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; transition: 0.3s;}
-        input[type="text"]:focus { border-color: var(--highlight-color); }
-        
-        button.action-btn { padding: 0 24px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none;}
-        button.action-btn.active { opacity: 1; pointer-events: auto; }
-        button.action-btn.active:hover { background: #14532d; transform: translateY(-2px);}
-        
-        .mic-btn { padding: 0; width: 56px; height: 56px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;}
-        .mic-btn:hover { background: rgba(150,150,150,0.1); }
-        button.pdf-btn { background: #ef4444; width: 56px; opacity: 1; pointer-events: auto; padding: 0; }
-        
-        .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 0 20px 15px; opacity: 0.7;}
-
-        .typing-indicator { display: none; align-items: center; gap: 6px; padding: 15px 22px; background: var(--bot-bg); border-radius: 20px; border-bottom-right-radius: 6px; margin-inline-start: 48px; border: 1px solid var(--btn-border); width: fit-content; margin-bottom: 20px;}
+        .typing-indicator { display: none; align-items: center; gap: 6px; margin-bottom: 20px; padding: 15px 22px; background: var(--bot-bg); border-radius: 20px; border-bottom-right-radius: 6px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); max-width: fit-content; margin-inline-start: 48px; border: 1px solid var(--btn-border);}
         .dot { width: 8px; height: 8px; background-color: var(--highlight-color); border-radius: 50%; animation: pulse 1.4s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; } .dot:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
         @keyframes pulse { 0%, 80%, 100% { transform: scale(0.4); opacity: 0.5;} 40% { transform: scale(1); opacity: 1;} }
 
+        .scroll-bottom-btn { position: absolute; bottom: 100px; right: 30px; background: var(--highlight-color); color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; box-shadow: 0 6px 15px rgba(5, 150, 105, 0.3); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100;}
+        .scroll-bottom-btn.visible { opacity: 1; pointer-events: auto; }
+        .scroll-bottom-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);}
+        html[dir="ltr"] .scroll-bottom-btn { right: auto; left: 30px; }
+
+        .inline-edit-area { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+        .inline-edit-area textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--highlight-color); font-family: 'Cairo', sans-serif; background: var(--bot-bg); color: var(--text-color); box-sizing: border-box; resize: vertical; min-height: 90px; box-shadow: 0 0 0 3px var(--focus-glow); outline: none;}
+        .inline-edit-controls { display: flex; gap: 10px; justify-content: flex-end; }
+        .inline-btn { padding: 6px 18px; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: bold; border: none; font-size: 13px; transition: 0.2s;}
+        .inline-save { background: var(--highlight-color); color: white; }
+        .inline-save:hover { background: #047857; }
+        .inline-cancel { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;}
+        .inline-cancel:hover { background: #e2e8f0; color: #0f172a;}
+        [data-theme="dark"] .inline-cancel { background: #1e293b; color: #cbd5e1; border-color: #334155;}
+        [data-theme="dark"] .inline-cancel:hover { background: #334155; color: #f8fafc;}
+
+        .input-area { max-width: 800px; margin: 0 auto; width: 100%; padding: 10px 20px calc(15px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; display: flex; gap: 12px; align-items: center; z-index: 5; background: transparent; }
+        
+        input[type="text"] { flex: 1; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--btn-border); background: var(--glass-bg); backdrop-filter: blur(10px); color: var(--text-color); font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
+        input[type="text"]:focus { border-color: var(--highlight-color); box-shadow: 0 0 0 4px var(--focus-glow), 0 4px 15px rgba(0,0,0,0.02); transform: translateY(-1px);}
+        
+        button.action-btn { padding: 0 24px; height: 56px; background: #166534; color: white; border: none; border-radius: 14px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.6; pointer-events: none; flex-shrink: 0;}
+        button.action-btn.active { opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.2);}
+        button.action-btn.active:hover { background: #14532d; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22, 101, 52, 0.3);}
+        @keyframes buttonPulse { 0% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(22, 101, 52, 0); } 100% { box-shadow: 0 0 0 0 rgba(22, 101, 52, 0); } }
+        button.action-btn.active { animation: buttonPulse 2s infinite; }
+
+        .mic-btn { padding: 0; width: 56px; height: 56px; background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--btn-border); border-radius: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
+        .mic-btn:hover { background: rgba(150,150,150,0.1); transform: translateY(-2px);}
+        .mic-btn.recording { background: #ef4444; color: white; border-color: #ef4444; animation: pulseMic 1.5s infinite; }
+        @keyframes pulseMic { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        button.pdf-btn { background: #ef4444; padding: 0; width: 56px; opacity: 1; pointer-events: auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); animation: none; flex-shrink: 0;}
+        button.pdf-btn:hover { background: #dc2626; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.25); transform: translateY(-2px);}
+        
+        .disclaimer { text-align: center; font-size: 11px; color: var(--sub-text); padding: 0 20px calc(15px + env(safe-area-inset-bottom, 0px)); opacity: 0.7; font-style: italic; flex-shrink: 0;}
+
+        #guestCounter { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); background: var(--highlight-color); color: white; padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: bold; z-index: 10; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2); transition: 0.3s; }
+
         @media (max-width: 768px) {
-            .input-area { padding: 10px 15px 20px; gap: 8px;} 
-            .action-btn, .mic-btn, .pdf-btn { width: 48px !important; min-width: 48px !important; height: 48px !important; padding: 0 !important; }
+            .input-area { padding: 10px 15px calc(20px + env(safe-area-inset-bottom, 0px)); gap: 8px;} 
+            .action-btn, .mic-btn, .pdf-btn { width: 48px !important; min-width: 48px !important; height: 48px !important; padding: 0 !important; flex-shrink: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+            input[type="text"] { padding: 14px 16px; font-size: 14px; flex: 1; min-width: 0; }
             .action-btn span { display: none !important; } 
+            .action-btn .lucide { width: 20px !important; height: 20px !important; margin: 0 !important; }
+            .top-controls { top: 12px; left: 12px; gap: 6px; padding: 6px;}
+            .control-btn { padding: 5px 10px; font-size: 12px; }
             .header { padding-top: 70px; }
             .header h1 { font-size: 22px; }
+            .mini-btn { opacity: 1; top: -12px; padding: 6px;} 
+            .scroll-bottom-btn { bottom: 100px; right: 15px; width: 38px; height: 38px; font-size: 16px;}
+            .empty-state h2 { font-size: 24px; }
             .apple-float { font-size: 75px; }
+            #guestCounter { top: 60px; font-size: 11px; }
+        }
+
+        #print-watermark { display: none; }
+        @page { size: A4; margin: 0; }
+        @media print {
+            body { background: white !important; color: black !important; padding: 2cm !important; max-width: 100% !important;}
+            .sidebar, .sidebar-overlay, .top-controls, .input-area, .header, .domain-selector, .empty-state, .disclaimer, .mini-btn, .loading, .scroll-bottom-btn, #guestCounter { display: none !important; }
+            .chat-container { overflow: visible !important; height: auto !important; border: none !important; padding: 0 !important; }
+            .message-wrapper { page-break-inside: avoid !important; margin-bottom: 15px !important; }
+            .message { box-shadow: none !important; border: 1px solid #cbd5e1 !important; color: black !important; background-color: #f8fafc !important;}
+            .bot-message { background-color: #ffffff !important; border: 1px solid #166534 !important; }
+            .highlight-text, .md-header { color: #166534 !important; }
+            .timestamp { display: none !important;}
         }
     </style>
 </head>
 <body data-theme="light">
 
+    <!-- التطبيق الرئيسي -->
     <div id="app-content">
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
@@ -164,13 +257,14 @@
                 <h3 id="historyTitle" style="margin:0; font-size: 18px; font-weight: 800;">سجل المحادثات</h3>
                 <button class="close-sidebar" onclick="toggleSidebar()"><i data-lucide="x"></i></button>
             </div>
-            <button class="new-chat-btn" onclick="startNewChat()"><i data-lucide="plus"></i> <span id="newChatText">محادثة جديدة</span></button>
+            <button class="new-chat-btn" id="newChatBtn" onclick="startNewChat()"><i data-lucide="plus"></i> <span id="newChatText">محادثة جديدة</span></button>
             <div class="history-list" id="historyList"></div>
             
             <div class="sidebar-footer">
                 <div id="supportText">للتواصل والدعم:</div>
                 <a href="mailto:hazemelhelw2020@gmail.com">hazemelhelw2020@gmail.com</a>
                 <div style="margin-top: 10px; opacity: 0.8;" id="creditText">Designed & Developed by<br>Hazem El Helw</div>
+                <button class="logout-btn" id="logoutBtn" onclick="signOut()">تسجيل الخروج</button>
             </div>
         </div>
 
@@ -178,18 +272,20 @@
             <button class="control-btn" onclick="toggleSidebar()"><i data-lucide="history"></i> <span id="menuText">السجل</span></button>
             <button class="control-btn" id="themeBtn" onclick="toggleTheme()"><i data-lucide="moon"></i> مظلم</button>
             <button class="control-btn" id="langBtn" onclick="toggleLang()"><i data-lucide="globe"></i> EN</button>
-            <button class="control-btn delete-btn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
+            <button class="control-btn delete-btn" id="clearBtn" onclick="clearAllChats()"><i data-lucide="trash-2"></i></button>
         </div>
 
         <div class="header">
-            <h1><span style="font-size: 28px;">🍏</span> Nutri - AI Advisor</h1>
+            <h1><span class="apple-icon">🍏</span> Nutri - AI Advisor</h1>
         </div>
 
         <div class="domain-selector">
             <select id="domainSelect"></select>
         </div>
 
-        <div class="chat-container" id="chatContainer">
+        <button class="scroll-bottom-btn" id="scrollBtn" onclick="scrollToBottomManual()"><i data-lucide="arrow-down"></i></button>
+
+        <div class="chat-container" id="chatContainer" onscroll="handleScroll()">
             <div id="messagesArea"></div>
             <div class="typing-indicator" id="loadingIndicator">
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
@@ -197,7 +293,7 @@
         </div>
 
         <div class="input-area">
-            <button class="action-btn pdf-btn" onclick="exportToPDF()" title="حفظ كمستند PDF"><i data-lucide="download"></i></button>
+            <button class="action-btn pdf-btn" id="pdfBtn" onclick="exportToPDF()" title="حفظ كمستند PDF"><i data-lucide="download"></i></button>
             <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecord()" title="إدخال صوتي"><i data-lucide="mic"></i></button>
             <input type="text" id="userInput" placeholder="اسأل Nutri عن أي استشارة غذائية..." onkeypress="handleKeyPress(event)" oninput="toggleSendButton()">
             <button class="action-btn" id="sendBtn" onclick="sendMessage()"><i data-lucide="send"></i> <span id="sendText">إرسال</span></button>
@@ -206,44 +302,155 @@
     </div>
 
     <script>
-        // المتغيرات الأساسية (تعمل فوراً بدون شروط)
-        let currentLang = localStorage.getItem('nutri_lang') || 'ar';
-        let currentChatId = null; 
-        let currentChatMessages = [];
+        // إعدادات السحابة والتوجيه
+        const supabaseUrl = 'https://pvtebagqtykzhtcjodwk.supabase.co';
+        const supabaseKey = 'sb_publishable_-kJ7ZqobsqGIAdGfa469tw_MXl2y6hS';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let currentUser = null;
+        let isGuestUser = localStorage.getItem('nutri_guest') === 'true';
+        let guestMessageCount = parseInt(localStorage.getItem('nutri_guest_count') || '0');
+
+        async function initApp() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                currentUser = session.user;
+                isGuestUser = false;
+                document.getElementById('logoutBtn').style.display = 'block';
+                await syncLocalDataToCloud();
+                await fetchChatsFromCloud();
+            } else {
+                isGuestUser = localStorage.getItem('nutri_guest') === 'true';
+                if (!isGuestUser) {
+                    window.location.href = 'login.html'; // توجيه فوري للملف المنفصل
+                    return;
+                }
+            }
+
+            if(isGuestUser) {
+                const micBtn = document.getElementById('micBtn');
+                if(micBtn) {
+                    micBtn.style.opacity = '0.5';
+                    micBtn.onclick = () => alert(currentLang === 'ar' ? 'ميزة الإدخال الصوتي للمسجلين فقط.' : 'Voice input is for registered users only.');
+                }
+                updateGuestCounterUI();
+            } else {
+                 const micBtn = document.getElementById('micBtn');
+                 if(micBtn) {
+                     micBtn.style.opacity = '1';
+                     micBtn.onclick = toggleVoiceRecord;
+                 }
+            }
+
+            updateUI(); 
+            renderHistoryList();
+            renderCurrentChat(false, true); 
+            lucide.createIcons();
+        }
+
+        async function syncLocalDataToCloud() {
+            if (!currentUser) return;
+            let localChats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
+            for (const chatId in localChats) {
+                await supabase.from('chats').upsert({
+                    id: chatId, title: localChats[chatId].title, messages: localChats[chatId].messages, user_id: currentUser.id
+                });
+            }
+        }
+
+        async function fetchChatsFromCloud() {
+            if(!currentUser) return;
+            const { data, error } = await supabase.from('chats').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true });
+            
+            if(data) {
+                let cloudChats = {};
+                data.forEach(chat => { cloudChats[chat.id] = { title: chat.title, messages: chat.messages }; });
+                localStorage.setItem('nutri_chats', JSON.stringify(cloudChats));
+                
+                if(data.length > 0) {
+                    const lastChat = data[data.length - 1];
+                    currentChatId = lastChat.id;
+                    currentChatMessages = lastChat.messages;
+                } else {
+                    startNewChat();
+                }
+            }
+        }
+
+        async function signOut() {
+            await supabase.auth.signOut();
+            localStorage.removeItem('nutri_guest');
+            window.location.href = 'login.html';
+        }
+
+        function updateGuestCounterUI() {
+            if (!isGuestUser) return;
+            const remaining = 10 - guestMessageCount;
+            let counterDiv = document.getElementById('guestCounter');
+            if (!counterDiv) {
+                counterDiv = document.createElement('div');
+                counterDiv.id = 'guestCounter';
+                document.body.appendChild(counterDiv);
+            }
+            counterDiv.textContent = currentLang === 'ar' ? `متبقي لك ${remaining} رسائل مجانية` : `${remaining} free messages left`;
+        }
+
+        // إعدادات اللغة والثيم
+        const savedTheme = localStorage.getItem('nutri_theme') || 'light';
+        const savedLang = localStorage.getItem('nutri_lang') || 'ar';
+        document.documentElement.lang = savedLang;
+        document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
+        document.body.setAttribute('data-theme', savedTheme);
+        let currentLang = savedLang;
+        let isUserAtBottom = true; 
         
-        document.documentElement.lang = currentLang;
-        document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-        document.body.setAttribute('data-theme', localStorage.getItem('nutri_theme') || 'light');
+        function getGreeting() {
+            const hour = new Date().getHours();
+            if (currentLang === 'ar') return hour < 12 ? "صباح الخير" : "مساء الخير";
+            return hour < 12 ? "Good Morning" : (hour < 18 ? "Good Afternoon" : "Good Evening");
+        }
+
+        const uiText = {
+            ar: {
+                themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة",
+                welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...",
+                inputPlaceholder: "تحدث أو اكتب استشارتك الغذائية...", sendBtn: "إرسال", 
+                support: "للتواصل والدعم:", credit: "Designed & Developed by<br>Hazem El Helw",
+                disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة.", editTitle: "تعديل", copyTitle: "نسخ", saveEdit: "حفظ", cancelEdit: "إلغاء",
+                healthTip: "نصيحة صحية سريعة"
+            },
+            en: {
+                themeLight: "Light", themeDark: "Dark", langToggle: "AR", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat",
+                welcomeTitle: "How can I assist you today?", domainDefault: "Select Consultation Domain (Optional)...",
+                inputPlaceholder: "Speak or type your dietary advice...", sendBtn: "Send", 
+                support: "Contact & Support:", credit: "Designed & Developed by<br>Hazem El Helw",
+                disclaimer: "Nutri is an AI model and may present inaccurate information.", editTitle: "Edit", copyTitle: "Copy", saveEdit: "Save", cancelEdit: "Cancel",
+                healthTip: "Quick Health Tip"
+            }
+        };
 
         const domainsData = {
             ar: ["التغذية البشرية والأنظمة الغذائية", "استشارة عامة في الأغذية", "كيمياء وتحليل الأغذية", "سلامة وصحة الغذاء وتأمين الجودة", "هندسة وتصنيع خطوط الإنتاج", "تطوير المنتجات والابتكار الغذائي", "ميكروبيولوجيا والأحياء الدقيقة للأغذية"],
             en: ["Human Nutrition & Diets", "General Food Consultation", "Food Chemistry & Analysis", "Food Safety & Quality Assurance", "Engineering & Production Lines", "Product Development & Innovation", "Food Microbiology"]
         };
 
-        const uiText = {
-            ar: { welcomeTitle: "كيف يمكنني مساعدتك اليوم؟", inputPlaceholder: "تحدث أو اكتب استشارتك الغذائية...", sendBtn: "إرسال", menuText: "السجل", historyTitle: "سجل المحادثات", newChatBtn: "محادثة جديدة", domainDefault: "اختر مجال الاستشارة التخصصي (اختياري)...", themeLight: "ساطع", themeDark: "مظلم", langToggle: "EN", disclaimer: "Nutri هو نموذج ذكاء اصطناعي، وقد يعرض معلومات غير دقيقة." },
-            en: { welcomeTitle: "How can I assist you today?", inputPlaceholder: "Speak or type your dietary advice...", sendBtn: "Send", menuText: "History", historyTitle: "Chat History", newChatBtn: "New Chat", domainDefault: "Select Consultation Domain (Optional)...", themeLight: "Light", themeDark: "Dark", langToggle: "AR", disclaimer: "Nutri is an AI model and may present inaccurate information." }
-        };
-
         const suggestionsPool = {
-            ar: [ {icon: "info", text: "كيف أقرأ البطاقة الغذائية بشكل صحيح؟"}, {icon: "shield-check", text: "أفضل طرق حفظ الأطعمة في الثلاجة؟"}, {icon: "flame", text: "طريقة صحية لقلي الطعام بأقل ضرر؟"}, {icon: "apple", text: "كيف أغسل الخضروات والفواكه بطريقة علمية؟"} ],
-            en: [ {icon: "info", text: "How to read Nutrition Facts correctly?"}, {icon: "shield-check", text: "Best ways to store food in the fridge?"}, {icon: "flame", text: "Healthier ways to fry food?"}, {icon: "apple", text: "How to scientifically wash vegetables?"} ]
+            ar: [
+                {icon: "info", text: "كيف أقرأ البطاقة الغذائية بشكل صحيح؟"}, {icon: "shield-check", text: "أفضل طرق حفظ الأطعمة في الثلاجة؟"}, 
+                {icon: "flame", text: "طريقة صحية لقلي الطعام بأقل ضرر؟"}, {icon: "leaf", text: "بدائل صحية وموفرة للسكر الأبيض؟"}, 
+                {icon: "zap", text: "كيف أرفع طاقتي في الصباح بدون كافيين؟"}, {icon: "droplet", text: "هل شرب الماء وسط الأكل مضر حقاً؟"},
+                {icon: "activity", text: "أفضل وجبة خفيفة قبل وبعد التمرين؟"}, {icon: "alert-triangle", text: "كيف أتأكد من سلامة الدجاج المخزن؟"}, 
+                {icon: "apple", text: "كيف أغسل الخضروات والفواكه بطريقة علمية؟"}, {icon: "heart", text: "أطعمة تساعد على تحسين جودة النوم؟"}
+            ],
+            en: [
+                {icon: "info", text: "How to read Nutrition Facts correctly?"}, {icon: "shield-check", text: "Best ways to store food in the fridge?"}, 
+                {icon: "flame", text: "Healthier ways to fry food?"}, {icon: "leaf", text: "Healthy alternatives to white sugar?"}, 
+                {icon: "zap", text: "How to boost energy without caffeine?"}, {icon: "droplet", text: "Is drinking water during meals bad?"},
+                {icon: "activity", text: "Best pre and post-workout snacks?"}, {icon: "alert-triangle", text: "How to ensure stored chicken is safe?"}, 
+                {icon: "apple", text: "How to scientifically wash vegetables?"}, {icon: "heart", text: "Foods that help improve sleep quality?"}
+            ]
         };
-
-        // الدالة الرئيسية: تعمل فوراً لترسم الواجهة ولا تنتظر أي شيء
-        document.addEventListener("DOMContentLoaded", () => {
-            initDomains();
-            updateUI();
-            renderCurrentChat();
-            renderHistoryList();
-            try { lucide.createIcons(); } catch(e) { console.error("Lucide failed", e); }
-        });
-
-        function getGreeting() {
-            const hour = new Date().getHours();
-            if (currentLang === 'ar') return hour < 12 ? "صباح الخير" : "مساء الخير";
-            return hour < 12 ? "Good Morning" : (hour < 18 ? "Good Afternoon" : "Good Evening");
-        }
 
         function initDomains() {
             const select = document.getElementById('domainSelect');
@@ -258,11 +465,21 @@
             document.getElementById('newChatText').textContent = uiText[currentLang].newChatBtn;
             document.getElementById('userInput').placeholder = uiText[currentLang].inputPlaceholder;
             document.getElementById('sendText').textContent = uiText[currentLang].sendBtn;
+            document.getElementById('supportText').textContent = uiText[currentLang].support;
+            document.getElementById('creditText').innerHTML = uiText[currentLang].credit;
             document.getElementById('disclaimerText').textContent = uiText[currentLang].disclaimer;
             
             const isLight = document.body.getAttribute('data-theme') === 'light';
             document.getElementById('themeBtn').innerHTML = isLight ? `<i data-lucide="moon"></i> ${uiText[currentLang].themeDark}` : `<i data-lucide="sun"></i> ${uiText[currentLang].themeLight}`;
-            try { lucide.createIcons(); } catch(e){}
+            
+            initDomains(); 
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            localStorage.setItem('nutri_lang', currentLang); updateUI(); 
         }
 
         function toggleTheme() {
@@ -271,18 +488,174 @@
             localStorage.setItem('nutri_theme', newTheme); updateUI();
         }
 
-        function toggleLang() {
-            currentLang = currentLang === 'ar' ? 'en' : 'ar';
-            localStorage.setItem('nutri_lang', currentLang);
-            location.reload();
-        }
-
         function toggleSendButton() {
             const inputField = document.getElementById('userInput');
             const sendBtn = document.getElementById('sendBtn');
             if(inputField.value.trim().length > 0) { sendBtn.classList.add('active'); } 
             else { sendBtn.classList.remove('active'); }
         }
+
+        let recognition; let isRecording = false;
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false; recognition.interimResults = false;
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                const inputField = document.getElementById('userInput');
+                inputField.value += (inputField.value ? ' ' : '') + transcript;
+                toggleSendButton(); stopRecording();
+            };
+            recognition.onerror = function() { stopRecording(); };
+            recognition.onend = function() { stopRecording(); };
+        }
+
+        function toggleVoiceRecord() {
+            if(isGuestUser) return;
+            if(!recognition) return;
+            if(isRecording) { stopRecording(); }
+            else {
+                recognition.lang = currentLang === 'ar' ? 'ar-EG' : 'en-US';
+                recognition.start(); isRecording = true;
+                document.getElementById('micBtn').classList.add('recording');
+            }
+        }
+        function stopRecording() {
+            if(recognition) recognition.stop();
+            isRecording = false; 
+            const micBtn = document.getElementById('micBtn');
+            if(micBtn) micBtn.classList.remove('recording');
+        }
+
+        function renderEmptyState() {
+            let shuffled = suggestionsPool[currentLang].sort(() => 0.5 - Math.random()).slice(0, 3);
+            let cardsHtml = `
+            <div class="suggestion-card primary-card" onclick="sendDynamicTip()" style="animation-delay: 0.1s">
+                <i data-lucide="sparkles"></i> <span>${uiText[currentLang].healthTip}</span>
+            </div>`;
+            shuffled.forEach((sugg, idx) => {
+                let delay = (idx + 2) * 0.1;
+                cardsHtml += `
+                <div class="suggestion-card" style="animation-delay: ${delay}s" onclick="document.getElementById('userInput').value = '${sugg.text}'; toggleSendButton(); sendMessage(false);">
+                    <i data-lucide="${sugg.icon}"></i> <span>${sugg.text}</span>
+                </div>`;
+            });
+            return `
+                <div class="empty-state">
+                    <div class="apple-float">🍏</div>
+                    <h2 style="margin-bottom: 5px;">${getGreeting()}</h2>
+                    <p style="font-weight: 600; color: var(--text-color);">${uiText[currentLang].welcomeTitle}</p>
+                    <div class="suggestions-grid">${cardsHtml}</div>
+                </div>`;
+        }
+
+        function sendDynamicTip() {
+            const themesAr = ['جودة النوم', 'المناعة', 'توازن الهضم', 'الطاقة الذهنية', 'مضادات الأكسدة', 'سلامة الأغذية المنزلية'];
+            const themesEn = ['Sleep Quality', 'Immunity', 'Gut Health', 'Mental Energy', 'Antioxidants', 'Home Food Safety'];
+            const themes = currentLang === 'ar' ? themesAr : themesEn;
+            const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+            const userMsg = currentLang === 'ar' ? 'نصيحة صحية سريعة...' : 'A quick health tip...';
+            
+            const hiddenInjection = `\n[System Rule: Give a highly unique, scientific health tip focusing exclusively on: ${randomTheme}. Keep it short, actionable, use formatting, and do not greet.]`;
+            document.getElementById('userInput').value = userMsg;
+            toggleSendButton(); sendMessage(false, "", hiddenInjection);
+        }
+
+        function parseMarkdown(text) { 
+            let html = text;
+            html = html.replace(/### (.*?)(?:\n|$)/g, '<div class="md-header">$1</div><br>');
+            html = html.replace(/## (.*?)(?:\n|$)/g, '<div class="md-header" style="font-size:20px;">$1</div><br>');
+            html = html.replace(/# (.*?)(?:\n|$)/g, '<div class="md-header" style="font-size:22px;">$1</div><br>');
+            html = html.replace(/\*\*(.*?)\*\*/g, '<span class="highlight-text">$1</span>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            html = html.replace(/^- (.*)$/gm, '• $1');
+            html = html.replace(/^\* (.*)$/gm, '• $1');
+            html = html.replace(/\n/g, '<br>'); 
+            return html; 
+        }
+
+        const chatContainerNode = document.getElementById('chatContainer');
+        const scrollBtn = document.getElementById('scrollBtn');
+        
+        function handleScroll() {
+            const isAtBottom = Math.abs(chatContainerNode.scrollHeight - chatContainerNode.scrollTop - chatContainerNode.clientHeight) < 30;
+            isUserAtBottom = isAtBottom;
+            if(!isAtBottom && currentChatMessages.length > 0) { scrollBtn.classList.add('visible'); } 
+            else { scrollBtn.classList.remove('visible'); }
+        }
+
+        function scrollToBottomManual() { chatContainerNode.scrollTo({ top: chatContainerNode.scrollHeight, behavior: 'smooth' }); }
+
+        let activeTypingTasks = [];
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                activeTypingTasks.forEach(task => { task.element.innerHTML = task.fullHTML; task.isCancelled = true; });
+                activeTypingTasks = [];
+            }
+        });
+
+        function typeWriterHTML(element, htmlStr) {
+            let task = { element: element, fullHTML: htmlStr, isCancelled: false };
+            activeTypingTasks.push(task);
+            let i = 0; element.innerHTML = "";
+            function type() {
+                if (task.isCancelled) return; 
+                if (i < htmlStr.length) {
+                    if (htmlStr.charAt(i) === "<") {
+                        let tagEnd = htmlStr.indexOf(">", i);
+                        if (tagEnd !== -1) i = tagEnd;
+                    }
+                    element.innerHTML = htmlStr.substring(0, i + 1); i++;
+                    setTimeout(type, 8); 
+                } else { activeTypingTasks = activeTypingTasks.filter(t => t !== task); }
+            }
+            type();
+        }
+
+        function copyText(index, btn) {
+            const textToCopy = currentChatMessages[index].content;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalHtml = btn.innerHTML; 
+                btn.innerHTML = '<i data-lucide="check"></i>'; lucide.createIcons();
+                setTimeout(() => { btn.innerHTML = originalHtml; lucide.createIcons(); }, 2000);
+            });
+        }
+
+        function editMessageInline(index) {
+            const msgDiv = document.getElementById(`msg-text-${index}`);
+            const currentText = currentChatMessages[index].content;
+            const wrapper = msgDiv.closest('.message-wrapper');
+            wrapper.querySelector('.mini-btn').style.display = 'none';
+
+            msgDiv.innerHTML = `
+                <div class="inline-edit-area">
+                    <textarea id="edit-input-${index}" dir="auto">${currentText}</textarea>
+                    <div class="inline-edit-controls">
+                        <button class="inline-btn inline-cancel" onclick="renderCurrentChat(false, true)">${uiText[currentLang].cancelEdit}</button>
+                        <button class="inline-btn inline-save" onclick="saveInlineEdit(${index})">${uiText[currentLang].saveEdit}</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById(`edit-input-${index}`).focus();
+        }
+
+        function saveInlineEdit(index) {
+            const newText = document.getElementById(`edit-input-${index}`).value.trim();
+            if(newText && newText !== currentChatMessages[index].content) {
+                currentChatMessages = currentChatMessages.slice(0, index); 
+                sendMessage(true, newText); 
+            } else { renderCurrentChat(false, true); } 
+        }
+
+        function generateSmartTitle(firstMessage) {
+            let cleanStr = firstMessage.replace(/[^\w\s\u0600-\u06FF]/g, ' ').replace(/\s+/g, ' ').trim();
+            let words = cleanStr.split(' ');
+            let title = words.slice(0, 4).join(' ');
+            if (words.length > 4) title += '...';
+            return title || (currentLang === 'ar' ? 'محادثة جديدة' : 'New Chat');
+        }
+
+        let currentChatId = null; let currentChatMessages = [];
+        function getFormattedTime() { return new Date().toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }); }
 
         function toggleSidebar() { 
             document.getElementById('sidebar').classList.toggle('open'); 
@@ -295,93 +668,41 @@
             if(window.innerWidth <= 768) toggleSidebar(); 
         }
 
-        function renderEmptyState() {
-            let cardsHtml = '';
-            suggestionsPool[currentLang].forEach(sugg => {
-                cardsHtml += `
-                <div class="suggestion-card" onclick="document.getElementById('userInput').value = '${sugg.text}'; toggleSendButton(); sendMessage();">
-                    <i data-lucide="${sugg.icon}"></i> <span>${sugg.text}</span>
-                </div>`;
-            });
-            return `
-                <div class="empty-state">
-                    <div style="font-size: 80px; margin-bottom:10px;">🍏</div>
-                    <h2>${getGreeting()}</h2>
-                    <p>${uiText[currentLang].welcomeTitle}</p>
-                    <div class="suggestions-grid">${cardsHtml}</div>
-                </div>`;
-        }
-
-        function renderCurrentChat() {
-            const msgArea = document.getElementById('messagesArea');
-            if (currentChatMessages.length === 0) {
-                msgArea.innerHTML = renderEmptyState(); 
-                try { lucide.createIcons(); } catch(e){}
-                return;
-            }
-            
-            msgArea.innerHTML = '';
-            currentChatMessages.forEach((msg) => {
-                const isUser = msg.role === 'user';
-                msgArea.innerHTML += `
-                    <div class="message-wrapper ${isUser ? 'user-wrapper' : 'bot-wrapper'}">
-                        <div class="${isUser ? '' : 'bot-wrapper-content'}">
-                            ${isUser ? '' : '<div class="bot-avatar">🍏</div>'}
-                            <div class="message ${isUser ? 'user-message' : 'bot-message'}" dir="auto">${msg.content}</div>
-                        </div>
-                        <div class="timestamp">${msg.time || ''}</div>
-                    </div>`;
-            });
-            document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
-        }
-
-        // الاتصال الآمن بالسيرفر (لا يوقف الواجهة أبداً)
-        async function sendMessage() {
-            const inputField = document.getElementById('userInput');
-            const message = inputField.value.trim();
-            if (!message) return;
-
-            if (!currentChatId) currentChatId = Date.now().toString();
-            const timeNow = new Date().toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' });
-            
-            currentChatMessages.push({ role: 'user', content: message, time: timeNow });
-            renderCurrentChat();
-            
-            inputField.value = ''; toggleSendButton(); 
-            document.getElementById('loadingIndicator').style.display = 'flex'; 
-            document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
-
-            const selectedDomain = document.getElementById('domainSelect').value;
-            const chatHistory = currentChatMessages.slice(0, -1).slice(-4);
-            saveChatToLocal(); 
-
-            try {
-                const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_message: message, domain: selectedDomain, history: chatHistory })
-                });
-
-                if (!response.ok) throw new Error('Network Error');
-                const data = await response.json();
-                
-                currentChatMessages.push({ role: 'bot', content: data.reply, time: timeNow });
-            } catch (error) {
-                currentChatMessages.push({ role: 'bot', content: "عذراً، حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقاً.", time: timeNow });
-            } finally {
-                document.getElementById('loadingIndicator').style.display = 'none'; 
-                renderCurrentChat(); 
-                saveChatToLocal(); 
+        async function clearAllChats() {
+            if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح كافة المحادثات؟' : 'Are you sure you want to clear all chats?')) {
+                if(currentUser) { await supabase.from('chats').delete().eq('user_id', currentUser.id); }
+                localStorage.removeItem('nutri_chats');
+                currentChatId = Date.now().toString(); currentChatMessages = [];
+                renderHistoryList(); renderCurrentChat();
             }
         }
 
-        function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(); }
+        async function deleteSingleChat(id, event) {
+            event.stopPropagation(); 
+            if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح هذه المحادثة؟' : 'Are you sure you want to delete this chat?')) {
+                if(currentUser) { await supabase.from('chats').delete().eq('id', id); }
+                let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
+                delete chats[id];
+                localStorage.setItem('nutri_chats', JSON.stringify(chats));
+                if(currentChatId === id) { currentChatId = Date.now().toString(); currentChatMessages = []; renderCurrentChat(); }
+                renderHistoryList();
+            }
+        }
 
-        function saveChatToLocal() {
+        async function saveChatToLocal() {
             if (currentChatMessages.length === 0) return;
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
-            let title = chats[currentChatId]?.title || currentChatMessages[0].content.split(' ').slice(0, 4).join(' ') + '...';
+            let title = chats[currentChatId]?.title;
+            if (!title) { title = generateSmartTitle(currentChatMessages[0].content); }
+            
             chats[currentChatId] = { title: title, messages: currentChatMessages, date: new Date().toLocaleDateString() };
             localStorage.setItem('nutri_chats', JSON.stringify(chats)); 
+            
+            if(currentUser) {
+                await supabase.from('chats').upsert({
+                    id: currentChatId, title: title, messages: currentChatMessages, user_id: currentUser.id
+                });
+            }
             renderHistoryList();
         }
 
@@ -389,30 +710,218 @@
             const list = document.getElementById('historyList'); list.innerHTML = '';
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             Object.keys(chats).reverse().forEach(id => {
-                list.innerHTML += `
-                    <div class="history-item-wrapper">
-                        <button class="history-item" onclick="loadChat('${id}'); toggleSidebar();">
-                            <span>${chats[id].title}</span>
-                        </button>
-                    </div>`;
+                let div = document.createElement('div'); div.className = 'history-item-wrapper'; 
+                div.innerHTML = `
+                    <button class="history-item" onclick="loadChat('${id}'); if(window.innerWidth <= 768) toggleSidebar();">
+                        <i data-lucide="message-square"></i> <span>${chats[id].title}</span>
+                    </button>
+                    <button class="delete-single-btn" onclick="deleteSingleChat('${id}', event)" title="حذف">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                `;
+                list.appendChild(div);
             });
+            lucide.createIcons();
         }
 
         function loadChat(id) {
             let chats = JSON.parse(localStorage.getItem('nutri_chats')) || {};
             if (chats[id]) {
                 currentChatId = id; currentChatMessages = chats[id].messages;
-                renderCurrentChat(); 
+                renderCurrentChat(false, true); 
+                setTimeout(scrollToBottomManual, 100);
             }
         }
 
-        function clearAllChats() {
-            if(confirm(currentLang === 'ar' ? 'هل أنت متأكد من مسح كافة المحادثات؟' : 'Are you sure you want to clear all chats?')) {
-                localStorage.removeItem('nutri_chats');
-                currentChatId = Date.now().toString(); currentChatMessages = [];
-                renderHistoryList(); renderCurrentChat();
+        function renderCurrentChat(animateLast = false, isSoftUpdate = false) {
+            const msgArea = document.getElementById('messagesArea');
+            
+            if (currentChatMessages.length === 0) {
+                msgArea.innerHTML = renderEmptyState(); 
+                lucide.createIcons(); 
+                return;
+            }
+
+            if (isSoftUpdate) {
+                msgArea.innerHTML = '';
+                currentChatMessages.forEach((msg, index) => {
+                    let timeStr = msg.time || ""; 
+                    if (msg.role === 'user') {
+                        msgArea.innerHTML += `
+                            <div class="message-wrapper user-wrapper" style="animation: none; opacity: 1; transform: none;">
+                                <div class="message user-message" id="msg-text-${index}" dir="auto">${parseMarkdown(msg.content)}</div>
+                                <button class="mini-btn edit-btn" onclick="editMessageInline(${index})" title="${uiText[currentLang].editTitle}"><i data-lucide="pencil"></i></button>
+                                <div class="timestamp">${timeStr}</div>
+                            </div>`;
+                    } else {
+                        msgArea.innerHTML += `
+                            <div class="message-wrapper bot-wrapper" style="animation: none; opacity: 1; transform: none;">
+                                <div class="bot-wrapper-content">
+                                    <div class="bot-avatar">🍏</div>
+                                    <div class="message bot-message" id="msg-text-${index}" dir="auto">${parseMarkdown(msg.content)}</div>
+                                    <button class="mini-btn copy-btn" onclick="copyText(${index}, this)" title="${uiText[currentLang].copyTitle}"><i data-lucide="copy"></i></button>
+                                </div>
+                                <div class="timestamp">${timeStr}</div>
+                            </div>`;
+                    }
+                });
+                lucide.createIcons();
+                scrollToBottomManual();
+                return;
+            }
+
+            const lastIndex = currentChatMessages.length - 1;
+            const lastMsg = currentChatMessages[lastIndex];
+            const timeStr = lastMsg.time || "";
+
+            const emptyState = msgArea.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            if (lastMsg.role === 'user') {
+                msgArea.insertAdjacentHTML('beforeend', `
+                    <div class="message-wrapper user-wrapper">
+                        <div class="message user-message" id="msg-text-${lastIndex}" dir="auto">${parseMarkdown(lastMsg.content)}</div>
+                        <button class="mini-btn edit-btn" onclick="editMessageInline(${lastIndex})" title="${uiText[currentLang].editTitle}"><i data-lucide="pencil"></i></button>
+                        <div class="timestamp">${timeStr}</div>
+                    </div>`);
+            } else {
+                msgArea.insertAdjacentHTML('beforeend', `
+                    <div class="message-wrapper bot-wrapper">
+                        <div class="bot-wrapper-content">
+                            <div class="bot-avatar">🍏</div>
+                            <div class="message bot-message" id="msg-text-${lastIndex}" dir="auto"></div>
+                            <button class="mini-btn copy-btn" onclick="copyText(${lastIndex}, this)" title="${uiText[currentLang].copyTitle}"><i data-lucide="copy"></i></button>
+                        </div>
+                        <div class="timestamp">${timeStr}</div>
+                    </div>`);
+                
+                if(animateLast) {
+                    setTimeout(() => { typeWriterHTML(document.getElementById(`msg-text-${lastIndex}`), parseMarkdown(lastMsg.content)); }, 50);
+                } else {
+                    document.getElementById(`msg-text-${lastIndex}`).innerHTML = parseMarkdown(lastMsg.content);
+                }
+            }
+            
+            lucide.createIcons();
+            if(animateLast === false) { scrollToBottomManual(); }
+        }
+
+        async function sendMessage(isEdit = false, editText = "", specialInjection = null) {
+            if (isGuestUser && guestMessageCount >= MAX_GUEST_MESSAGES) {
+                alert(currentLang === 'ar' ? "انتهت رسائلك المجانية. يرجى تسجيل الدخول." : "Free messages exhausted. Please log in.");
+                window.location.href = 'login.html'; 
+                return;
+            }
+
+            const inputField = document.getElementById('userInput');
+            const message = isEdit ? editText : inputField.value.trim();
+            if (!message) return;
+
+            if (!currentChatId) currentChatId = Date.now().toString();
+            const selectedDomain = document.getElementById('domainSelect').value;
+            
+            currentChatMessages.push({ role: 'user', content: message, time: getFormattedTime() });
+            
+            if (isGuestUser && !isEdit) {
+                guestMessageCount++;
+                localStorage.setItem('nutri_guest_count', guestMessageCount);
+                updateGuestCounterUI();
+            }
+            
+            if(isEdit) { renderCurrentChat(false, true); } 
+            else { renderCurrentChat(false, false); }
+            
+            scrollToBottomManual();
+            
+            inputField.value = ''; toggleSendButton(); 
+            document.getElementById('loadingIndicator').style.display = 'flex'; 
+
+            let finalMessage = message + (specialInjection ? specialInjection : "");
+            
+            let chatHistory = currentChatMessages.slice(0, -1).slice(-4).map(msg => ({
+                role: msg.role,
+                content: msg.content
+            }));
+
+            saveChatToLocal(); 
+
+            try {
+                const response = await fetch('https://nutrimind-red.vercel.app/api/chat', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_message: finalMessage, 
+                        domain: selectedDomain,
+                        history: chatHistory 
+                    })
+                });
+
+                if (!response.ok) throw new Error('Network Error');
+                const data = await response.json();
+                
+                currentChatMessages.push({ role: 'bot', content: data.reply, time: getFormattedTime() });
+                document.getElementById('loadingIndicator').style.display = 'none'; 
+                renderCurrentChat(true, false); 
+                saveChatToLocal(); 
+                
+            } catch (error) {
+                currentChatMessages.push({ role: 'bot', content: "Error connecting to the server.", time: getFormattedTime() });
+                document.getElementById('loadingIndicator').style.display = 'none'; 
+                renderCurrentChat(true, false);
             }
         }
+        
+        function handleKeyPress(event) { if (event.key === 'Enter') sendMessage(false); }
+
+        function exportToPDF() {
+            if (currentChatMessages.length === 0) return;
+            const printWindow = window.open('', '_blank');
+            const isAr = currentLang === 'ar';
+            let htmlContent = `
+            <!DOCTYPE html>
+            <html dir="${isAr ? 'rtl' : 'ltr'}" lang="${currentLang}">
+            <head>
+                <title>Nutri Consultation - ${new Date().toLocaleDateString()}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+                <style>
+                    @page { size: A4; margin: 0; }
+                    body { font-family: 'Cairo', sans-serif; padding: 2cm; color: #000; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.8;}
+                    .header { text-align: center; border-bottom: 2px solid #166534; padding-bottom: 10px; margin-bottom: 30px; }
+                    .header h2 { color: #166534; margin: 0; font-size: 26px;}
+                    .header p { color: #666; margin: 5px 0 0 0; font-size: 14px;}
+                    .msg-block { margin-bottom: 25px; page-break-inside: avoid; }
+                    .role-user { font-weight: bold; color: #166534; font-size: 16px; margin-bottom: 5px;}
+                    .role-bot { font-weight: bold; color: #0f172a; font-size: 16px; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;}
+                    .text-content { padding: 10px 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 15px;}
+                    .bot-content { background: #ffffff; border-color: #166534; border-${isAr ? 'right' : 'left'}: 4px solid #166534; }
+                    .highlight-text { color: #059669; font-weight: bold; }
+                    .md-header { color: #059669; font-weight: bold; font-size: 18px; margin-top: 10px; margin-bottom: 5px;}
+                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #eee; padding-top: 15px; }
+                    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 300px; opacity: 0.03; z-index: -1; pointer-events: none; }
+                </style>
+            </head>
+            <body>
+                <div class="watermark">🍏</div>
+                <div class="header">
+                    <h2>🍏 Nutri Consultation Report</h2>
+                    <p>${new Date().toLocaleString(isAr ? 'ar-EG' : 'en-US')}</p>
+                </div>
+            `;
+            currentChatMessages.forEach(msg => {
+                if(msg.role === 'user') {
+                    let roleName = isAr ? 'السؤال / الاستفسار:' : 'Question / Inquiry:';
+                    htmlContent += `<div class="msg-block"><div class="role-user">${roleName}</div><div class="text-content">${msg.content}</div></div>`;
+                } else {
+                    let roleName = isAr ? '🍏 استشارة نيوتري:' : '🍏 Nutri Advice:';
+                    htmlContent += `<div class="msg-block"><div class="role-bot">${roleName}</div><div class="text-content bot-content">${parseMarkdown(msg.content)}</div></div>`;
+                }
+            });
+            htmlContent += `<div class="footer"><strong>Nutri AI Advisor</strong><br>Designed & Developed by Hazem El Helw</div></body>
+            <script> window.onload = function() { setTimeout(function(){ window.print(); }, 500); } <\/script></html>`;
+            printWindow.document.open(); printWindow.document.write(htmlContent); printWindow.document.close();
+        }
+
+        // تشغيل التطبيق فوراً
+        initApp(); 
     </script>
 </body>
 </html>
